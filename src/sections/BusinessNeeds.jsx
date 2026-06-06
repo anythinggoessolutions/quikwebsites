@@ -1,8 +1,6 @@
-import { useRef, Suspense, lazy } from 'react'
+import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import Stack from '../components/ui/Stack/Stack'
-
-const Spline = lazy(() => import('@splinetool/react-spline'))
 
 const FEATURES = [
   { num: '01', title: 'Scroll-Driven 3D Experience', desc: 'Cinematic scroll animations that make every visitor stop, feel, and remember you.', accent: '#00C65A', icon: '✦' },
@@ -32,11 +30,14 @@ export default function BusinessNeeds() {
   return (
     <section className="bn-section">
 
-      {/* ── Spline bot — full background ── */}
+      {/* ── Static robot background (replaced interactive Spline for performance) ── */}
       <div className="bn-spline-bg" aria-hidden="true">
-        <Suspense fallback={<div className="bn-spline-fallback" />}>
-          <Spline scene="https://prod.spline.design/ugwwdgxqWwHuUP9n/scene.splinecode" />
-        </Suspense>
+        <img
+          src="/spline-robot.webp"
+          alt=""
+          className="bn-robot-img"
+          draggable={false}
+        />
       </div>
 
       {/* ── Overlay to keep text readable ── */}
@@ -113,21 +114,21 @@ export default function BusinessNeeds() {
           align-items: center;
         }
 
-        /* ── Spline full background ── */
+        /* ── Static robot background ── */
         .bn-spline-bg {
           position: absolute;
           inset: 0;
           z-index: 0;
+          background: #c8c8ce;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .bn-spline-bg canvas,
-        .bn-spline-bg > div {
-          width: 100% !important;
-          height: 100% !important;
-        }
-        .bn-spline-fallback {
+        .bn-robot-img {
           width: 100%;
           height: 100%;
-          background: #0a0a1a;
+          object-fit: cover;
+          object-position: center 60%;
         }
 
         /* ── Subtle left-side overlay so text pops ── */
