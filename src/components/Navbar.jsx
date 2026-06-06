@@ -18,7 +18,7 @@ export default function Navbar() {
           transition={{ duration: 0.5 }}
         >
           <motion.img
-            src="/logo.png"
+            src="/logo.webp"
             alt="QuikWebsites"
             className="logo-img"
             style={{ filter: logoFilter }}

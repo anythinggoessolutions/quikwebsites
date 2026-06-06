@@ -95,7 +95,15 @@
       "WebFetch(domain:shadergradient.co)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(gh repo *)",
+      "Bash(gh auth *)",
+      "Bash(git push *)",
+      "Bash(dig quikwebsites.com NS +short)",
+      "Bash(dig quikwebsites.com A +short)",
+      "Bash(dig www.quikwebsites.com +short)",
+      "Bash(sudo dscacheutil -flushcache)",
+      "Bash(sudo killall -HUP mDNSResponder)"
     ]
   }
 }

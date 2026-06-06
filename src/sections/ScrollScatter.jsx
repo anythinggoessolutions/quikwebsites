@@ -17,14 +17,14 @@ const SCATTER_DATA = [
 ]
 
 const IMAGES = [
-  '/images/bella-ambiance.png',
-  '/images/lens-portrait.png',
-  '/images/fitlife-gym.png',
-  '/images/lens-wedding.png',
-  '/images/bella-herodish.png',
-  '/images/fitlife-class.png',
-  '/images/lens-landscape.png',
-  '/images/care-sarah.png',
+  '/images/bella-ambiance.webp',
+  '/images/lens-portrait.webp',
+  '/images/fitlife-gym.webp',
+  '/images/lens-wedding.webp',
+  '/images/bella-herodish.webp',
+  '/images/fitlife-class.webp',
+  '/images/lens-landscape.webp',
+  '/images/care-sarah.webp',
 ]
 
 function ScatterItem({ src, scatter, index, scrollYProgress }) {

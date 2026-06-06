@@ -11,7 +11,7 @@ gsap.registerPlugin(ScrollTrigger)
 const FRAME_DIRS   = ['/frames/bella-vista', '/frames/fitlife', '/frames/carefirst', '/frames/lens-light']
 const FRAME_COUNTS = [85, 40, 40, 40]
 const frameSrc = (biz, n) =>
-  `${FRAME_DIRS[biz]}/ezgif-frame-${String(n + 1).padStart(3, '0')}.jpg`
+  `${FRAME_DIRS[biz]}/ezgif-frame-${String(n + 1).padStart(3, '0')}.webp`
 
 /* ─────────────────────────────────────────────────────────────
    Scroll timing
@@ -161,7 +161,7 @@ function BellaVistaWebsite({ visible }) {
           {/* Main large dish */}
           <motion.div variants={itemV} className="mw-dish-feature" style={{ borderColor: 'rgba(255,209,102,0.18)' }}>
             <div className="mw-dish-photo-lg mw-img-wrap">
-              <img src="/images/bella-herodish.png" alt="Spaghetti Carbonara" className="mw-photo-real" />
+              <img src="/images/bella-herodish.webp" alt="Spaghetti Carbonara" className="mw-photo-real" />
               <div className="mw-img-shine" />
             </div>
             <div className="mw-dish-info">
@@ -173,14 +173,14 @@ function BellaVistaWebsite({ visible }) {
           <motion.div variants={subContainerV} className="mw-dish-pair">
             <motion.div variants={itemLeftV} className="mw-dish-sm" style={{ background: '#1a0400', borderColor: 'rgba(255,209,102,0.10)' }}>
               <div className="mw-dish-photo-sm mw-img-wrap">
-                <img src="/images/bella-bistecca.png" alt="Bistecca" className="mw-photo-real" />
+                <img src="/images/bella-bistecca.webp" alt="Bistecca" className="mw-photo-real" />
               </div>
               <div className="mw-dish-sm-name" style={{ color: '#fff' }}>Bistecca</div>
               <div className="bv-shimmer-price" style={{ color: '#FFD166', fontSize: 9, fontWeight: 800 }}>$42</div>
             </motion.div>
             <motion.div variants={itemRightV} className="mw-dish-sm" style={{ background: '#1a0400', borderColor: 'rgba(255,209,102,0.10)' }}>
               <div className="mw-dish-photo-sm mw-img-wrap">
-                <img src="/images/bella-tiramisu.png" alt="Tiramisu" className="mw-photo-real" />
+                <img src="/images/bella-tiramisu.webp" alt="Tiramisu" className="mw-photo-real" />
               </div>
               <div className="mw-dish-sm-name" style={{ color: '#fff' }}>Tiramisu</div>
               <div className="bv-shimmer-price" style={{ color: '#FFD166', fontSize: 9, fontWeight: 800 }}>$13</div>
@@ -192,7 +192,7 @@ function BellaVistaWebsite({ visible }) {
       {/* Reserve section */}
       <motion.div variants={sectionV} className="mw-reserve-section" style={{ background: '#080100' }}>
         <div className="mw-ambiance-wrap">
-          <img src="/images/bella-ambiance.png" alt="Restaurant ambiance" className="mw-ambiance-real" />
+          <img src="/images/bella-ambiance.webp" alt="Restaurant ambiance" className="mw-ambiance-real" />
           <div className="mw-ambiance-overlay" />
         </div>
         <div className="mw-reserve-content">
@@ -248,7 +248,7 @@ function FitLifeWebsite({ visible }) {
       {/* Atmosphere + Stats */}
       <motion.div variants={sectionV} className="mw-big-section" style={{ background: '#010A03' }}>
         <div className="mw-atmos-wrap">
-          <img src="/images/fitlife-gym.png" alt="Gym floor" className="mw-atmos-real" />
+          <img src="/images/fitlife-gym.webp" alt="Gym floor" className="mw-atmos-real" />
           <div className="mw-atmos-overlay" />
         </div>
         <div className="mw-stats-overlay" style={{ background: 'rgba(1,10,3,0.85)' }}>
@@ -295,7 +295,7 @@ function FitLifeWebsite({ visible }) {
       {/* Trainer */}
       <motion.div variants={sectionV} className="mw-trainer-feature" style={{ background: '#010A03', borderColor: 'rgba(105,240,174,0.1)' }}>
         <motion.div variants={scaleV} className="mw-trainer-photo-wrap">
-          <img src="/images/fitlife-trainer.png" alt="Trainer" className="mw-trainer-real" />
+          <img src="/images/fitlife-trainer.webp" alt="Trainer" className="mw-trainer-real" />
           <div className="mw-trainer-ring" style={{ borderColor: '#69F0AE' }} />
         </motion.div>
         <div className="mw-trainer-info">
@@ -364,8 +364,8 @@ function CareFirstWebsite({ visible }) {
         <div className="mw-label" style={{ color: '#80D8FF' }}>Meet Our Doctors</div>
         <motion.div className="mw-doctor-row" variants={subContainerV}>
           {[
-            { img: '/images/care-sarah.png', name: 'Dr. Sarah Lee', spec: 'Family Medicine' },
-            { img: '/images/care-mike.png',  name: 'Dr. Mike Kim',  spec: 'Cardiology' },
+            { img: '/images/care-sarah.webp', name: 'Dr. Sarah Lee', spec: 'Family Medicine' },
+            { img: '/images/care-mike.webp',  name: 'Dr. Mike Kim',  spec: 'Cardiology' },
           ].map((doc, idx) => (
             <motion.div
               key={doc.name}
@@ -397,10 +397,10 @@ function CareFirstWebsite({ visible }) {
    MINI WEBSITE — Lens & Light
 ───────────────────────────────────────────────────────────── */
 const LL_PORTFOLIO = [
-  { src: '/images/lens-portrait.png',  caption: 'Portraits'  },
-  { src: '/images/lens-wedding.png',   caption: 'Weddings'   },
-  { src: '/images/lens-landscape.png', caption: 'Editorial'  },
-  { src: '/images/lens-lifestyle.png', caption: 'Lifestyle'  },
+  { src: '/images/lens-portrait.webp',  caption: 'Portraits'  },
+  { src: '/images/lens-wedding.webp',   caption: 'Weddings'   },
+  { src: '/images/lens-landscape.webp', caption: 'Editorial'  },
+  { src: '/images/lens-lifestyle.webp', caption: 'Lifestyle'  },
 ]
 const LL_PACKAGES = [
   ['Essential', 'Half day · 30 edits',             '$800'],

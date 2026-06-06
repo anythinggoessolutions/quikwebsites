@@ -11,7 +11,7 @@ export default function Footer() {
 
         {/* ── Brand col ── */}
         <div className="ft-brand">
-          <img src="/logo.png" className="ft-logo" alt="QuikWebsites" />
+          <img src="/logo.webp" className="ft-logo" alt="QuikWebsites" />
           <p className="ft-tagline">
             This is what a website<br />should feel like.
           </p>

@@ -137,7 +137,7 @@ export default function IntroAnimation() {
         style={{
           width: 'clamp(280px, 40vw, 520px)',
           height: 'clamp(68px, 9.5vw, 130px)',
-          backgroundImage: 'url(/quikwebsites_logo.png)',
+          backgroundImage: 'url(/quikwebsites_logo.webp)',
           backgroundSize: '100% auto',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',

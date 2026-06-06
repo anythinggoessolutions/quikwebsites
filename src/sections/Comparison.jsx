@@ -123,7 +123,7 @@ function LiquidImageBg() {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([6, 5, 15, 255]))
 
     const img = new Image()
-    img.src = '/comparisonbackground3.png'
+    img.src = '/comparisonbackground3.webp'
     img.onload = () => {
       imgAspect = img.naturalWidth / img.naturalHeight
       gl.bindTexture(gl.TEXTURE_2D, tex)
