@@ -32,12 +32,15 @@ export default function BusinessNeeds() {
 
       {/* ── Static robot background (replaced interactive Spline for performance) ── */}
       <div className="bn-spline-bg" aria-hidden="true">
-        <img
-          src="/spline-robot.webp"
-          alt=""
-          className="bn-robot-img"
-          draggable={false}
-        />
+        <picture>
+          <source media="(max-width: 640px)" srcSet="/spline-robot-mobile.webp" />
+          <img
+            src="/spline-robot.webp"
+            alt=""
+            className="bn-robot-img"
+            draggable={false}
+          />
+        </picture>
       </div>
 
       {/* ── Overlay to keep text readable ── */}
@@ -129,6 +132,10 @@ export default function BusinessNeeds() {
           height: 100%;
           object-fit: cover;
           object-position: center 60%;
+        }
+        .bn-spline-bg picture {
+          width: 100%;
+          height: 100%;
         }
 
         /* ── Subtle left-side overlay so text pops ── */
