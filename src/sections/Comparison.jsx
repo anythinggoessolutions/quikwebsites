@@ -193,7 +193,7 @@ function LiquidImageBg() {
 
 export default function Comparison() {
   const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const inView = useInView(ref, { once: true, margin: '-120px' })
 
   return (
     <section ref={ref} className="cmp-section">

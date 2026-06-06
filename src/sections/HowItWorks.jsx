@@ -528,7 +528,7 @@ export default function HowItWorks() {
         }
 
         @media (max-width: 640px) {
-          .hiw-section    { height: 400vh; }
+          .hiw-section    { height: 480vh; }
           .hiw-eyebrow    { left: 20px; top: 72px; }
           .hiw-pips       { right: 20px; }
           .hiw-step-title { letter-spacing:-1.5px; font-size: clamp(36px,9vw,56px); }

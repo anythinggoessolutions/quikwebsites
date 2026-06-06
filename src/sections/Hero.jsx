@@ -107,15 +107,17 @@ export default function Hero() {
     const cols     = colRefs.map(r => r.current).filter(Boolean)
     if (!section || !card || !headline || !cols.length) return
 
+    const mobile = window.matchMedia('(max-width: 640px)').matches
+
     const ctx = gsap.context(() => {
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end:   '+=220%',
+          end:   mobile ? '+=160%' : '+=220%',
           pin:   true,
-          scrub: 1.2,
+          scrub: mobile ? 0.8 : 1.2,
           anticipatePin: 1,
         }
       })

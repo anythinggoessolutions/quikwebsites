@@ -23,11 +23,12 @@ export default function CallToAction() {
   }
 
   useEffect(() => {
+    const mobile = window.matchMedia('(max-width: 640px)').matches
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: 'top 72%',
+          start: mobile ? 'top 50%' : 'top 72%',
           once: true,
         },
       })

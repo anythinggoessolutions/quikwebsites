@@ -115,7 +115,7 @@ function ReviewCard({ review }) {
 
 export default function Reviews() {
   const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const inView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
     <section className="rv-section">

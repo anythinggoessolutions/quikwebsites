@@ -1370,7 +1370,7 @@ export default function LiveExamples() {
 
         /* Responsive */
         @media (max-width: 640px) {
-          .le2-section { height: 700vh; }
+          .le2-section { height: 600vh; }
           .le2-sticky { height: 100vh; height: 100svh; }
           .le2-phone-bezel { width: 230px; height: 472px; border-radius: 36px; }
           .le2-island { width: 88px; height: 26px; }

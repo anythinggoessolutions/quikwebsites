@@ -34,7 +34,7 @@ const FAQS = [
 
 export default function FAQ() {
   const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-10px' })
+  const inView = useInView(ref, { once: true, margin: '-80px' })
   const [open, setOpen] = useState(null)
 
   return (

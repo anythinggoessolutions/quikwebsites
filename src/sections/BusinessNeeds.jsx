@@ -25,7 +25,7 @@ const CARDS = FEATURES.map(f => (
 
 export default function BusinessNeeds() {
   const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const inView = useInView(ref, { once: true, margin: '-120px' })
 
   return (
     <section className="bn-section">
