@@ -341,6 +341,7 @@ export default function HowItWorks() {
     const raf = requestAnimationFrame(() => {
       ScrollTrigger.refresh()
 
+      const mobile     = window.matchMedia('(max-width: 640px)').matches
       const easeOut    = t => 1 - Math.pow(1-t, 2)
       const easeIn     = t => Math.pow(t, 2)
       const REVEAL_END = 0.11
@@ -352,7 +353,7 @@ export default function HowItWorks() {
       const ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: section,
-          start:   'top top',
+          start:   mobile ? 'top 70%' : 'top top',
           end:     'bottom bottom',
           scrub:   0.6,
           onUpdate(self) {

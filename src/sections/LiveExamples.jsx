@@ -516,7 +516,7 @@ export default function LiveExamples() {
       ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: section,
-          start:   'top top',
+          start:   mobile ? 'top 70%' : 'top top',
           end:     'bottom bottom',
           scrub:   mobile ? 0.8 : 1.2,
 
