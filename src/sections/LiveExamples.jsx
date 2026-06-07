@@ -507,6 +507,10 @@ export default function LiveExamples() {
       })
     })
 
+    const mobile   = window.matchMedia('(max-width: 640px)').matches
+    const bizStart = mobile ? 0.12 : BIZ_START
+    const bizSpan  = (1 - bizStart) / 4
+
     let ctx
     const rafId = requestAnimationFrame(() => {
       ctx = gsap.context(() => {
@@ -514,7 +518,7 @@ export default function LiveExamples() {
           trigger: section,
           start:   'top top',
           end:     'bottom bottom',
-          scrub:   1.2,
+          scrub:   mobile ? 0.8 : 1.2,
 
           onUpdate(self) {
             const p = self.progress
@@ -522,21 +526,24 @@ export default function LiveExamples() {
             /* ── Intro heading ── */
             const introEl = introRef.current
             if (introEl) {
+              const iIn   = mobile ? 0.04 : 0.02
+              const iHold = mobile ? 0.08 : 0.05
+              const iOut  = mobile ? 0.12 : 0.08
               const introOp =
-                p < 0.02 ? eOut3(p / 0.02) :
-                p < 0.05 ? 1 :
-                p < 0.08 ? eOut2((0.08 - p) / 0.03) : 0
+                p < iIn   ? eOut3(p / iIn) :
+                p < iHold ? 1 :
+                p < iOut  ? eOut2((iOut - p) / (iOut - iHold)) : 0
               const introY =
-                p < 0.02 ? (1 - eOut3(p / 0.02)) * 44 :
-                p < 0.05 ? 0 :
-                p < 0.08 ? -eIn2((p - 0.05) / 0.03) * 22 : -22
+                p < iIn   ? (1 - eOut3(p / iIn)) * 44 :
+                p < iHold ? 0 :
+                p < iOut  ? -eIn2((p - iHold) / (iOut - iHold)) * 22 : -22
               introEl.style.opacity   = introOp
               introEl.style.transform = `translateY(${introY}px)`
             }
 
             /* ── Per-business ── */
             BUSINESSES.forEach((biz, i) => {
-              const lp = clamp((p - BIZ_START - i * BIZ_SPAN) / BIZ_SPAN, 0, 1)
+              const lp = clamp((p - bizStart - i * bizSpan) / bizSpan, 0, 1)
 
               /* Background */
               const bgEl = bgRefs.current[i]
@@ -1370,7 +1377,7 @@ export default function LiveExamples() {
 
         /* Responsive */
         @media (max-width: 640px) {
-          .le2-section { height: 600vh; }
+          .le2-section { height: 800vh; }
           .le2-sticky { height: 100vh; height: 100svh; }
           .le2-phone-bezel { width: 230px; height: 472px; border-radius: 36px; }
           .le2-island { width: 88px; height: 26px; }

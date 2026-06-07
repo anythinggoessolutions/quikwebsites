@@ -278,7 +278,7 @@ function useExplosion(canvasRef, shardsRef, explodingRef, explodeStartRef, crack
 }
 
 /* ─── Camera shake (earthquake rumble) ─── */
-function useShake(stickyRef, crackProgressRef, explodingRef) {
+function useShake(stickyRef, crackProgressRef, explodingRef, explodeStartRef) {
   useEffect(() => {
     const el = stickyRef.current
     if (!el) return
@@ -286,10 +286,15 @@ function useShake(stickyRef, crackProgressRef, explodingRef) {
     const loop = t => {
       if (t - lastT > 45) {   /* ~22fps — classic earthquake stutter */
         lastT = t
-        const p         = crackProgressRef.current
-        const intensity = explodingRef.current
-          ? 18                      /* max shake at explosion */
-          : p * p * 9               /* ramps quadratically — barely felt at start */
+        const p = crackProgressRef.current
+        let intensity
+        if (explodingRef.current) {
+          const elapsed = (performance.now() - explodeStartRef.current) / 1000
+          /* Hard shake for 0.5s then decay to 0 over 0.4s */
+          intensity = elapsed < 0.5 ? 18 : Math.max(0, 18 * (1 - (elapsed - 0.5) / 0.4))
+        } else {
+          intensity = p * p * 9     /* ramps quadratically — barely felt at start */
+        }
         if (intensity > 0.5) {
           el.style.transform = `translate(${(Math.random()-0.5)*intensity}px,${(Math.random()-0.5)*intensity*0.55}px)`
         } else {
@@ -320,7 +325,7 @@ export default function HowItWorks() {
 
   useWebGLCracks(crackCanvasRef, crackProgressRef)
   useExplosion(explodeCanvasRef, shardsRef, explodingRef, explodeStartRef, crackCanvasRef)
-  useShake(stickyRef, crackProgressRef, explodingRef)
+  useShake(stickyRef, crackProgressRef, explodingRef, explodeStartRef)
 
   useLayoutEffect(() => {
     const section = sectionRef.current
@@ -528,7 +533,7 @@ export default function HowItWorks() {
         }
 
         @media (max-width: 640px) {
-          .hiw-section    { height: 480vh; }
+          .hiw-section    { height: 650vh; }
           .hiw-eyebrow    { left: 20px; top: 72px; }
           .hiw-pips       { right: 20px; }
           .hiw-step-title { letter-spacing:-1.5px; font-size: clamp(36px,9vw,56px); }
