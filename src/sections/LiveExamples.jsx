@@ -512,13 +512,16 @@ export default function LiveExamples() {
     const bizSpan  = (1 - bizStart) / 4
 
     let ctx
-    const rafId = requestAnimationFrame(() => {
+    /* Delay ensures Hero's pin spacer is in the DOM before we calculate positions */
+    const timerId = setTimeout(() => {
+      ScrollTrigger.refresh()
       ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: section,
-          start:   mobile ? 'top 70%' : 'top top',
+          start:   'top top',
           end:     'bottom bottom',
           scrub:   mobile ? 0.8 : 1.2,
+          invalidateOnRefresh: true,
 
           onUpdate(self) {
             const p = self.progress
@@ -652,9 +655,9 @@ export default function LiveExamples() {
           },
         })
       }, section)
-    })
+    }, 150)
 
-    return () => { cancelAnimationFrame(rafId); ctx?.revert() }
+    return () => { clearTimeout(timerId); ctx?.revert() }
   }, [])
 
   return (

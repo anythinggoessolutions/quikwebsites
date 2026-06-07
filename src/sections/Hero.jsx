@@ -119,6 +119,7 @@ export default function Hero() {
           pin:   true,
           scrub: mobile ? 0.8 : 1.2,
           anticipatePin: 1,
+          refreshPriority: 1,
         }
       })
 

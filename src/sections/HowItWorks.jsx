@@ -338,7 +338,8 @@ export default function HowItWorks() {
       el.style.opacity = '0'; el.style.transform = 'translateY(28px)'
     })
 
-    const raf = requestAnimationFrame(() => {
+    /* Delay ensures Hero's pin spacer is in the DOM before we calculate positions */
+    const timer = setTimeout(() => {
       ScrollTrigger.refresh()
 
       const mobile     = window.matchMedia('(max-width: 640px)').matches
@@ -353,9 +354,10 @@ export default function HowItWorks() {
       const ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: section,
-          start:   mobile ? 'top 70%' : 'top top',
+          start:   'top top',
           end:     'bottom bottom',
           scrub:   0.6,
+          invalidateOnRefresh: true,
           onUpdate(self) {
             const p = self.progress
 
@@ -407,10 +409,10 @@ export default function HowItWorks() {
         })
       }, section)
       return () => ctx.revert()
-    })
+    }, 150)
 
     return () => {
-      cancelAnimationFrame(raf)
+      clearTimeout(timer)
       ScrollTrigger.getAll().forEach(t => t.kill())
     }
   }, [])
