@@ -661,7 +661,7 @@ export default function LiveExamples() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="le2-section">
+    <section id="examples" ref={sectionRef} className="le2-section">
       <div className="le2-sticky">
 
         {/* ── Intro heading ── */}

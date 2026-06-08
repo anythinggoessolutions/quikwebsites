@@ -118,7 +118,7 @@ export default function Reviews() {
   const inView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section className="rv-section">
+    <section id="reviews" className="rv-section">
 
 
       {/* ── Aurora background ── */}

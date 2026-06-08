@@ -170,7 +170,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="hero" ref={sectionRef}>
+    <section id="hero" className="hero" ref={sectionRef}>
 
       {/* ── Scrolling background grid ── */}
       <div className="preview-grid" ref={gridRef} aria-hidden="true">

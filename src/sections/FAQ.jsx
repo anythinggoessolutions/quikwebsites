@@ -38,7 +38,7 @@ export default function FAQ() {
   const [open, setOpen] = useState(null)
 
   return (
-    <section ref={ref} className="faq-section">
+    <section id="faq" ref={ref} className="faq-section">
 
       {/* ── Header ── */}
       <motion.div

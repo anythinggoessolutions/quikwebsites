@@ -1,5 +1,12 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   const year = new Date().getFullYear()
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <footer className="ft-footer">
@@ -22,23 +29,19 @@ export default function Footer() {
         <div className="ft-links">
           <div className="ft-col">
             <p className="ft-col-label">Product</p>
-            <a className="ft-link" href="#">How It Works</a>
-            <a className="ft-link" href="#">Live Examples</a>
-            <a className="ft-link" href="#">Pricing</a>
-            <a className="ft-link" href="#">FAQ</a>
+            <a className="ft-link" onClick={() => scrollTo('how-it-works')}>How It Works</a>
+            <a className="ft-link" onClick={() => scrollTo('examples')}>Examples</a>
+            <a className="ft-link" onClick={() => scrollTo('faq')}>FAQ</a>
           </div>
           <div className="ft-col">
             <p className="ft-col-label">Company</p>
             <a className="ft-link" href="#">About</a>
-            <a className="ft-link" href="#">Blog</a>
-            <a className="ft-link" href="#">Careers</a>
             <a className="ft-link" href="#">Contact</a>
           </div>
           <div className="ft-col">
             <p className="ft-col-label">Legal</p>
-            <a className="ft-link" href="#">Privacy Policy</a>
-            <a className="ft-link" href="#">Terms of Service</a>
-            <a className="ft-link" href="#">Cookie Policy</a>
+            <Link className="ft-link" to="/privacy">Privacy Policy</Link>
+            <Link className="ft-link" to="/terms">Terms of Service</Link>
           </div>
         </div>
 
@@ -156,6 +159,7 @@ export default function Footer() {
           font-size: 13px;
           color: rgba(255,255,255,0.42);
           text-decoration: none;
+          cursor: pointer;
           transition: color 0.18s;
         }
         .ft-link:hover { color: rgba(255,255,255,0.85); }

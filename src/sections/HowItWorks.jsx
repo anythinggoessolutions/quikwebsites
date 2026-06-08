@@ -419,7 +419,7 @@ export default function HowItWorks() {
 
   return (
     <>
-      <section ref={sectionRef} className="hiw-section">
+      <section id="how-it-works" ref={sectionRef} className="hiw-section">
         <div ref={stickyRef} className="hiw-sticky">
 
           <div className="hiw-dark-base" />
