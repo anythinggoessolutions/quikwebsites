@@ -487,25 +487,38 @@ export default function LiveExamples() {
   const bgRefs         = useRef([])
   const textRefs       = useRef([])
   const phoneRefs      = useRef([])
-  const frameRefs      = useRef([])
+  const frameRefs      = useRef([])   /* now <canvas> elements */
   const voLogoRefs     = useRef([])
   const voHdRefs       = useRef([])
   const voTlRefs       = useRef([])
   const siteRefs       = useRef([])
   const contentRefs    = useRef([])
+  const frameCacheRef  = useRef([])   /* preloaded Image objects */
+  const lastFrameRef   = useRef([-1, -1, -1, -1])  /* track drawn frame per biz */
 
   const [visibleWebsites, setVisibleWebsites] = useState([false, false, false, false])
   const visibleTracker = useRef([false, false, false, false])
+
+  /* Preload ALL frames on mount — ~3 MB total, loads while user is in Hero/HowItWorks */
+  useEffect(() => {
+    const cache = FRAME_DIRS.map((_, bizIdx) => {
+      const frames = []
+      for (let n = 0; n < FRAME_COUNTS[bizIdx]; n++) {
+        const img = new Image()
+        img.decoding = 'async'
+        img.src = frameSrc(bizIdx, n)
+        frames.push(img)
+      }
+      return frames
+    })
+    frameCacheRef.current = cache
+  }, [])
 
   useLayoutEffect(() => {
     const section = sectionRef.current
     if (!section) return
 
-    BUSINESSES.forEach((_, i) => {
-      [0, Math.floor(FRAME_COUNTS[i] / 2), FRAME_COUNTS[i] - 1].forEach(n => {
-        const img = new Image(); img.src = frameSrc(i, n)
-      })
-    })
+    /* Frame preloading now happens in a separate useEffect above */
 
     const mobile   = window.matchMedia('(max-width: 640px)').matches
     const bizStart = mobile ? 0.12 : BIZ_START
@@ -584,17 +597,28 @@ export default function LiveExamples() {
                   `translateX(-50%) translateY(calc(-50% + ${yVh}vh))`
               }
 
-              /* Frame scrubbing */
-              const frameImg = frameRefs.current[i]
-              if (frameImg) {
+              /* Frame scrubbing — Canvas drawImage from preloaded cache */
+              const canvas = frameRefs.current[i]
+              if (canvas) {
                 const frameP = clamp(mapR(lp, 0.28, 0.64), 0, 1)
                 const frameN = Math.round(frameP * (FRAME_COUNTS[i] - 1))
-                const newSrc = frameSrc(i, frameN)
-                if (frameImg.dataset.cur !== newSrc) {
-                  frameImg.src         = newSrc
-                  frameImg.dataset.cur = newSrc
+
+                /* Only redraw when the frame actually changes */
+                if (lastFrameRef.current[i] !== frameN) {
+                  lastFrameRef.current[i] = frameN
+                  const cachedImg = frameCacheRef.current[i]?.[frameN]
+                  if (cachedImg?.complete && cachedImg.naturalWidth > 0) {
+                    const ctx2d = canvas.getContext('2d')
+                    const cw = canvas.width, ch = canvas.height
+                    const iw = cachedImg.naturalWidth, ih = cachedImg.naturalHeight
+                    /* Cover-fit: fill canvas while maintaining aspect ratio */
+                    const scale = Math.max(cw / iw, ch / ih)
+                    const dw = iw * scale, dh = ih * scale
+                    ctx2d.drawImage(cachedImg, (cw - dw) / 2, (ch - dh) / 2, dw, dh)
+                  }
                 }
-                frameImg.style.opacity =
+
+                canvas.style.opacity =
                   lp < 0.28 ? 0 :
                   lp < 0.31 ? eOut2((lp - 0.28) / 0.03) :
                   lp < 0.64 ? 1 :
@@ -700,13 +724,12 @@ export default function LiveExamples() {
 
               <div className="le2-island" />
 
-              {/* Frame scrub image */}
-              <img
+              {/* Frame scrub canvas — draws from preloaded image cache */}
+              <canvas
                 ref={el => { frameRefs.current[i] = el }}
                 className="le2-frame-img"
-                src={frameSrc(i, 0)}
-                alt=""
-                draggable={false}
+                width={400}
+                height={820}
                 style={{ opacity: 0 }}
               />
 
@@ -923,13 +946,12 @@ export default function LiveExamples() {
           pointer-events: none;
         }
 
-        /* ── Frame image ── */
+        /* ── Frame canvas ── */
         .le2-frame-img {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: cover;
           z-index: 5;
           will-change: opacity;
           pointer-events: none;
