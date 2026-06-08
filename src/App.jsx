@@ -12,6 +12,7 @@ import CallToAction from './sections/CallToAction'
 import FAQ from './sections/FAQ'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
+import ContactSupport from './pages/ContactSupport'
 
 function LandingPage() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/contact" element={<ContactSupport />} />
       </Routes>
     </BrowserRouter>
   )

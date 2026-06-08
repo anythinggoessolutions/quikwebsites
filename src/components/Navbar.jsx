@@ -22,21 +22,6 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
-  const scrollToSection = (id) => {
-    if (location.pathname !== '/') {
-      navigate('/')
-      /* Wait for landing page to mount, then scroll */
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ behavior: 'smooth' })
-      }, 300)
-    } else {
-      const el = document.getElementById(id)
-      if (el) el.scrollIntoView({ behavior: 'smooth' })
-    }
-    setMenuOpen(false)
-  }
-
   return (
     <>
       <motion.nav style={{ background: bg, boxShadow: shadow }} className="navbar">
@@ -63,10 +48,18 @@ export default function Navbar() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <motion.a onClick={() => scrollToSection('examples')} style={{ color: linkColor }}>Examples</motion.a>
-            <motion.a onClick={() => scrollToSection('how-it-works')} style={{ color: linkColor }}>How It Works</motion.a>
-            <motion.a onClick={() => scrollToSection('reviews')} style={{ color: linkColor }}>Reviews</motion.a>
-            <motion.a className="nav-login" onClick={() => scrollToSection('hero')} style={{ color: linkColor }}>Log In</motion.a>
+            <motion.a
+              onClick={() => navigate('/contact')}
+              style={{ color: linkColor }}
+            >
+              Contact Support
+            </motion.a>
+            <motion.a
+              className="nav-login"
+              style={{ color: linkColor }}
+            >
+              Log In
+            </motion.a>
             <motion.button
               className="nav-cta"
               whileHover={{ scale: 1.04 }}
@@ -104,13 +97,10 @@ export default function Navbar() {
               exit={{ y: 20, opacity: 0 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <a onClick={() => scrollToSection('examples')}>Examples</a>
-              <a onClick={() => scrollToSection('how-it-works')}>How It Works</a>
-              <a onClick={() => scrollToSection('reviews')}>Reviews</a>
-              <a onClick={() => scrollToSection('faq')}>FAQ</a>
+              <a onClick={() => { setMenuOpen(false); navigate('/contact') }}>Contact Support</a>
               <div className="mobile-menu-divider" />
-              <a className="mobile-login" onClick={() => scrollToSection('hero')}>Log In</a>
-              <button className="mobile-cta" onClick={() => { setMenuOpen(false) }}>
+              <a className="mobile-login" onClick={() => setMenuOpen(false)}>Log In</a>
+              <button className="mobile-cta" onClick={() => setMenuOpen(false)}>
                 Start Free &rarr;
               </button>
             </motion.div>

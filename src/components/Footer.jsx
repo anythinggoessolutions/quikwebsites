@@ -28,15 +28,9 @@ export default function Footer() {
         {/* ── Links ── */}
         <div className="ft-links">
           <div className="ft-col">
-            <p className="ft-col-label">Product</p>
-            <a className="ft-link" onClick={() => scrollTo('how-it-works')}>How It Works</a>
-            <a className="ft-link" onClick={() => scrollTo('examples')}>Examples</a>
+            <p className="ft-col-label">Support</p>
+            <Link className="ft-link" to="/contact">Contact Support</Link>
             <a className="ft-link" onClick={() => scrollTo('faq')}>FAQ</a>
-          </div>
-          <div className="ft-col">
-            <p className="ft-col-label">Company</p>
-            <a className="ft-link" href="#">About</a>
-            <a className="ft-link" href="#">Contact</a>
           </div>
           <div className="ft-col">
             <p className="ft-col-label">Legal</p>
