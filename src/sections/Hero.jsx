@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -79,6 +80,7 @@ function PreviewColumn({ cards, direction, speed, colRef }) {
 export default function Hero() {
   const [businessName, setBusinessName] = useState('')
   const [description,  setDescription]  = useState('')
+  const navigate = useNavigate()
 
   const sectionRef   = useRef(null)
   const gridRef      = useRef(null)
@@ -94,7 +96,11 @@ export default function Hero() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (businessName.trim() || description.trim()) {
-      alert(`Building website for "${businessName}" 🚀`)
+      const params = new URLSearchParams({
+        name: businessName.trim(),
+        desc: description.trim(),
+      })
+      navigate(`/generate?${params.toString()}`)
     }
   }
 

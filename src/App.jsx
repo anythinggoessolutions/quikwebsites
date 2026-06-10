@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import posthog from 'posthog-js'
 import Navbar from './components/Navbar'
 import IntroAnimation from './components/IntroAnimation'
 import Footer from './components/Footer'
@@ -13,6 +15,7 @@ import FAQ from './sections/FAQ'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import ContactSupport from './pages/ContactSupport'
+import GeneratePage from './pages/GeneratePage'
 
 function LandingPage() {
   return (
@@ -35,10 +38,21 @@ function LandingPage() {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (import.meta.env.VITE_POSTHOG_KEY) {
+      posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+        api_host: 'https://us.i.posthog.com',
+        capture_pageview: true,
+        capture_pageleave: true,
+      })
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/generate" element={<GeneratePage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/contact" element={<ContactSupport />} />
