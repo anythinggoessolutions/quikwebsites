@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load design prompt once at startup (cached across all requests)
 const DESIGN_PROMPT = readFileSync(
-  join(__dirname, "..", "..", "QUIKWEBSITES-DESIGN-PROMPT.md"),
+  join(__dirname, "..", "QUIKWEBSITES-DESIGN-PROMPT.md"),
   "utf-8"
 );
 

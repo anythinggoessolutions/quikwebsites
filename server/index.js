@@ -477,7 +477,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DESIGN_PROMPT_LENGTH = readFileSync(
-  join(__dirname, "..", "..", "QUIKWEBSITES-DESIGN-PROMPT.md"),
+  join(__dirname, "..", "QUIKWEBSITES-DESIGN-PROMPT.md"),
   "utf-8"
 ).length;
 
