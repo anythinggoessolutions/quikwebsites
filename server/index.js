@@ -28,7 +28,7 @@ app.use(express.json());
 
 // Server-side Supabase client (service role, bypasses RLS)
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
