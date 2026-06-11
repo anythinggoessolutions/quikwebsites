@@ -19,7 +19,7 @@ import { createTemplateRoutes, startTemplateRecycler } from "./templates.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
 
 // Stripe webhook needs raw body — must be before express.json()
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }));
