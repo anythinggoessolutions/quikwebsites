@@ -119,6 +119,14 @@ export default function SiteViewPage() {
                 className="sv-edit"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(`/sites/${id}/domain`)}
+              >
+                🌐 Domain
+              </motion.button>
+              <motion.button
+                className="sv-edit"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(`/sites/${id}/edit`)}
               >
                 ✎ Edit Site
