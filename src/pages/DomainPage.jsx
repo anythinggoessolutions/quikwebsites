@@ -26,23 +26,42 @@ export default function DomainPage() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
 
-  const [site, setSite] = useState(null)
+  const demoState = new URLSearchParams(window.location.search).get('demo')
+  const isDemo = !!demoState
+
+  const [site, setSite] = useState(isDemo ? {
+    id: 'demo', name: "Bella's Kitchen", status: 'published', slug: 'bellas-kitchen',
+    custom_domain: demoState === 'empty' ? null : 'bellaskitchen.com',
+    cloudflare_project_id: 'demo-proj',
+  } : null)
   const [siteError, setSiteError] = useState('')
-  const [status, setStatus] = useState(null) // null = loading, object once fetched
+  const [status, setStatus] = useState(
+    !isDemo ? null :
+    demoState === 'empty' ? { connected: false } :
+    demoState === 'pending' ? {
+      connected: true, active: false, domain: 'bellaskitchen.com',
+      nameservers: ['kelly.ns.cloudflare.com', 'martin.ns.cloudflare.com'],
+    } :
+    demoState === 'active' ? {
+      connected: true, active: true, domain: 'bellaskitchen.com',
+      ssl: 'active', nameservers: ['kelly.ns.cloudflare.com', 'martin.ns.cloudflare.com'],
+    } : { connected: false }
+  )
   const [domainInput, setDomainInput] = useState('')
   const [connecting, setConnecting] = useState(false)
-  const [connectResult, setConnectResult] = useState(null) // { domain, nameservers, records }
+  const [connectResult, setConnectResult] = useState(null)
   const [connectError, setConnectError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
-  const [copied, setCopied] = useState(null) // index of nameserver that was copied
+  const [copied, setCopied] = useState(null)
 
   useEffect(() => {
+    if (isDemo) return
     if (!authLoading && !user) navigate('/auth', { replace: true })
-  }, [user, authLoading, navigate])
+  }, [user, authLoading, navigate, isDemo])
 
   useEffect(() => {
-    if (!user || !id) return
+    if (isDemo || !user || !id) return
     supabase
       .from('sites')
       .select('id, name, status, slug, custom_domain, cloudflare_project_id')
@@ -52,15 +71,15 @@ export default function DomainPage() {
         if (error || !data) setSiteError('Site not found')
         else setSite(data)
       })
-  }, [user, id])
+  }, [user, id, isDemo])
 
   const loadStatus = useCallback(() => {
-    if (!user || !id) return Promise.resolve()
+    if (isDemo || !user || !id) return Promise.resolve()
     return fetch(`${API_URL}/api/domains/status?siteId=${id}&userId=${user.id}`)
       .then(r => (r.ok ? r.json() : { connected: false }))
       .then(setStatus)
       .catch(() => setStatus({ connected: false }))
-  }, [user, id])
+  }, [user, id, isDemo])
 
   useEffect(() => { loadStatus() }, [loadStatus])
 
