@@ -31,8 +31,9 @@ const PLANS = [
     tagline: 'For businesses that want it all',
     features: [
       'Everything in Starter',
-      '50 edits per month',
-      '2 custom cinematic videos per month',
+      '2 custom cinematic videos every month — $30 value',
+      '50 edits per month (2.5× Starter)',
+      'Priority support',
     ],
     cta: 'Go Live with Pro',
     highlight: true,
