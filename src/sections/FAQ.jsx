@@ -227,7 +227,7 @@ export default function FAQ() {
 
         /* ── Responsive ── */
         @media (max-width: 640px) {
-          .faq-section  { padding: 80px 20px 100px; }
+          .faq-section  { padding: 64px 20px 56px; }
           .faq-header   { margin-bottom: 48px; }
           .faq-title    { letter-spacing: -1px; }
           .faq-question { padding: 20px 0; }

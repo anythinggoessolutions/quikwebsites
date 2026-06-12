@@ -19,9 +19,7 @@ export default function Footer() {
         {/* ── Brand col ── */}
         <div className="ft-brand">
           <img src="/logo.webp" className="ft-logo" alt="QuikWebsites" />
-          <p className="ft-tagline">
-            This is what a website<br />should feel like.
-          </p>
+          <p className="ft-tagline">This is what a website should feel like.</p>
           <p className="ft-copy">© {year} QuikWebsites. All rights reserved.</p>
         </div>
 
@@ -200,15 +198,50 @@ export default function Footer() {
         @media (max-width: 900px) {
           .ft-inner {
             grid-template-columns: 1fr;
-            gap: 48px;
-            padding: 56px 24px 40px;
+            gap: 40px;
+            padding: 48px 24px 32px;
           }
-          .ft-links { gap: 40px; }
+          .ft-links { gap: 48px; }
         }
         @media (max-width: 640px) {
-          .ft-links  { flex-wrap: wrap; gap: 32px; }
-          .ft-bottom { flex-direction: column; align-items: flex-start; padding: 20px 24px 28px; }
-          .ft-logo   { height: 80px; margin: -20px -16px -20px 0; }
+          .ft-inner {
+            padding: 40px 24px 24px;
+            gap: 32px;
+            justify-items: center;
+            text-align: center;
+          }
+          .ft-brand {
+            align-items: center;
+            text-align: center;
+          }
+          .ft-logo {
+            height: 72px;
+            margin: -18px 0;
+            object-position: center center;
+          }
+          .ft-tagline {
+            margin-bottom: 14px;
+            max-width: 260px;
+          }
+          .ft-links {
+            width: 100%;
+            justify-content: space-around;
+            gap: 24px;
+            flex-wrap: nowrap;
+          }
+          .ft-col {
+            align-items: center;
+            text-align: center;
+          }
+          .ft-bottom {
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 24px 24px;
+            text-align: center;
+          }
+          .ft-bottom-text { line-height: 1.5; max-width: 280px; }
+          .ft-socials { gap: 14px; }
         }
       `}</style>
     </footer>
