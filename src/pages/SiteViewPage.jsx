@@ -71,14 +71,24 @@ export default function SiteViewPage() {
         </div>
         <div className="sv-actions">
           {site && (
-            <motion.button
-              className="sv-edit"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => navigate(`/sites/${id}/edit`)}
-            >
-              ✎ Edit Site
-            </motion.button>
+            <>
+              <motion.button
+                className="sv-edit"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(`/sites/${id}/analytics`)}
+              >
+                📊 Analytics
+              </motion.button>
+              <motion.button
+                className="sv-edit"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(`/sites/${id}/edit`)}
+              >
+                ✎ Edit Site
+              </motion.button>
+            </>
           )}
           {site && site.status === 'published' && site.slug && (
             <a

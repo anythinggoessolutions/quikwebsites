@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [credits, setCredits] = useState(null)
   const [sites, setSites] = useState(null) // null = loading, [] = none
   const [signingOut, setSigningOut] = useState(false)
+  const [openingPortal, setOpeningPortal] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth', { replace: true })
@@ -51,6 +52,23 @@ export default function DashboardPage() {
     setSigningOut(true)
     await signOut()
     navigate('/', { replace: true })
+  }
+
+  const openBillingPortal = async () => {
+    if (openingPortal) return
+    setOpeningPortal(true)
+    try {
+      const res = await fetch(`${API_URL}/api/stripe/portal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not open billing')
+      window.location.href = data.url
+    } catch {
+      setOpeningPortal(false)
+    }
   }
 
   if (loading) {
@@ -103,14 +121,25 @@ export default function DashboardPage() {
 
         <div className="dash-header">
           <h1>Dashboard</h1>
-          <motion.button
-            className="dash-generate-btn"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/')}
-          >
-            + Build New Website
-          </motion.button>
+          <div className="dash-header-actions">
+            {credits && credits.plan !== 'free' && (
+              <button
+                className="dash-billing-btn"
+                disabled={openingPortal}
+                onClick={openBillingPortal}
+              >
+                {openingPortal ? 'Opening…' : 'Manage Billing'}
+              </button>
+            )}
+            <motion.button
+              className="dash-generate-btn"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/')}
+            >
+              + Build New Website
+            </motion.button>
+          </div>
         </div>
 
         {/* Credits overview */}
@@ -293,6 +322,20 @@ function DashStyles() {
         letter-spacing: -0.5px;
         margin: 0;
       }
+      .dash-header-actions { display: flex; align-items: center; gap: 10px; }
+      .dash-billing-btn {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px; font-weight: 600;
+        color: rgba(255,255,255,0.65);
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .dash-billing-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+      .dash-billing-btn:disabled { opacity: 0.5; cursor: not-allowed; }
       .dash-generate-btn {
         font-family: 'Inter', sans-serif;
         font-size: 14px; font-weight: 600;
