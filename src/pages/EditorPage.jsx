@@ -80,7 +80,7 @@ export default function EditorPage() {
     loadVersions()
   }, [user, id, loadCredits, loadVersions])
 
-  // Render HTML into iframe whenever it changes
+  // Render HTML into iframe whenever it changes, and make images click-to-swap
   useEffect(() => {
     if (!site?.html_content || !iframeRef.current) return
     const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
@@ -88,7 +88,32 @@ export default function EditorPage() {
     doc.open()
     doc.write(site.html_content)
     doc.close()
-  }, [site?.html_content])
+
+    // Hover affordance for swappable images
+    const style = doc.createElement('style')
+    style.textContent = `
+      img:hover {
+        outline: 3px solid #5b50e8 !important;
+        outline-offset: 2px;
+        cursor: pointer !important;
+        filter: brightness(1.05);
+      }
+    `
+    doc.head?.appendChild(style)
+
+    // Click an image in the preview → open the swap picker for it
+    const handleClick = (e) => {
+      const img = e.target?.closest?.('img')
+      if (!img) return
+      const src = img.getAttribute('src')
+      if (!src || src.startsWith('data:')) return
+      e.preventDefault()
+      e.stopPropagation()
+      openSwapFor(src)
+    }
+    doc.addEventListener('click', handleClick, true)
+    return () => doc.removeEventListener('click', handleClick, true)
+  }, [site?.html_content, openSwapFor])
 
   const totalCredits = credits ? credits.totalCredits : null
   const outOfCredits = totalCredits !== null && totalCredits < 1
@@ -121,13 +146,30 @@ export default function EditorPage() {
     }
   }, [])
 
+  const resultsLoadedRef = useRef(false)
+
   const openImages = () => {
     setImagesOpen(true)
     setSelectedOld(null)
     setGalleryTab('gallery')
     setGalleryError('')
-    if (results.length === 0) searchPhotos('')
+    if (!resultsLoadedRef.current) {
+      resultsLoadedRef.current = true
+      searchPhotos('')
+    }
   }
+
+  // Open the swap modal directly for a specific image (clicked in the preview)
+  const openSwapFor = useCallback((src) => {
+    setSelectedOld(src)
+    setGalleryTab('gallery')
+    setGalleryError('')
+    setImagesOpen(true)
+    if (!resultsLoadedRef.current) {
+      resultsLoadedRef.current = true
+      searchPhotos('')
+    }
+  }, [searchPhotos])
 
   const doSwap = async (newUrl, source) => {
     if (swapping) return
@@ -306,6 +348,9 @@ export default function EditorPage() {
           >
             🖼 Swap an image — free
           </button>
+          <p className="ed-tip">
+            Tip: click any image in the preview to swap it directly.
+          </p>
 
           {/* Quick ideas */}
           {!outOfCredits && (
@@ -683,6 +728,14 @@ export default function EditorPage() {
           background: linear-gradient(135deg, #5b50e8, #7c6af5);
           border: none; border-radius: 10px;
           padding: 10px 18px; cursor: pointer;
+        }
+
+        .ed-tip {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          color: rgba(255,255,255,0.35);
+          margin: -6px 0 0;
+          text-align: center;
         }
 
         /* Image swap button */
