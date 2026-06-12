@@ -17,7 +17,7 @@ const PLANS = [
       'Connect your own domain',
       'Free stock photo gallery',
       'Upload your own photos',
-      'Cinematic scroll video templates',
+      'Cinematic videos from our template library',
       'Contact form included',
       'Visitor analytics',
     ],
