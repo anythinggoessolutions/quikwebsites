@@ -9,6 +9,34 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+// ── Name.com reseller (for in-app domain purchasing) ──
+const NAMECOM_USERNAME = process.env.NAMECOM_USERNAME;
+const NAMECOM_API_TOKEN = process.env.NAMECOM_API_TOKEN;
+const NAMECOM_API = "https://api.name.com/v4";
+const NAMECOM_AUTH =
+  NAMECOM_USERNAME && NAMECOM_API_TOKEN
+    ? "Basic " + Buffer.from(`${NAMECOM_USERNAME}:${NAMECOM_API_TOKEN}`).toString("base64")
+    : null;
+
+// TLDs we offer when a user just types a brand name (no dot)
+const SUGGESTED_TLDS = [".com", ".net", ".org", ".io", ".co", ".ai", ".app"];
+
+// Flat markup added to Name.com's wholesale price before rounding to .99
+const MARKUP_PER_TLD = {
+  default: 7,
+  ".ai": 8,
+  ".io": 8,
+  ".dev": 6,
+  ".app": 6,
+};
+
+function applyMarkup(wholesale, tld) {
+  if (!wholesale) return null;
+  const markup = MARKUP_PER_TLD[tld] ?? MARKUP_PER_TLD.default;
+  // markup + round up to nearest .99
+  return Math.floor(wholesale + markup) + 0.99;
+}
+
 const GOOGLE_WORKSPACE_MX = [
   { name: "@", content: "ASPMX.L.GOOGLE.COM", priority: 1 },
   { name: "@", content: "ALT1.ASPMX.L.GOOGLE.COM", priority: 5 },
@@ -19,6 +47,68 @@ const GOOGLE_WORKSPACE_MX = [
 
 export function createDomainRoutes(supabase) {
   const router = Router();
+
+  /**
+   * POST /api/domains/search
+   * Check availability and pricing across multiple TLDs via Name.com.
+   *
+   * Body: { query }
+   *   "myrestaurant"           → checks each SUGGESTED_TLDS
+   *   "myrestaurant.com"       → checks only that exact domain
+   *   "myrestaurant.com .io"   → checks each provided domain
+   */
+  router.post("/search", async (req, res) => {
+    const { query } = req.body;
+    if (!query || typeof query !== "string") {
+      return res.status(400).json({ error: "Missing query" });
+    }
+    if (!NAMECOM_AUTH) {
+      return res.status(503).json({ error: "Domain registrar not configured" });
+    }
+
+    // Normalize input → list of fully-qualified candidates
+    const cleaned = query.trim().toLowerCase().replace(/[^a-z0-9.\- ]/g, "");
+    if (!cleaned) return res.status(400).json({ error: "Invalid search term" });
+
+    const candidates = cleaned.includes(".")
+      ? cleaned.split(/\s+/).filter(Boolean)
+      : SUGGESTED_TLDS.map((tld) => cleaned + tld);
+
+    try {
+      const r = await fetch(`${NAMECOM_API}/domains:checkAvailability`, {
+        method: "POST",
+        headers: { Authorization: NAMECOM_AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({ domainNames: candidates }),
+      });
+      if (!r.ok) {
+        const text = await r.text();
+        console.error("Name.com search error:", r.status, text);
+        return res.status(502).json({ error: "Search failed" });
+      }
+      const data = await r.json();
+
+      const results = (data.results || []).map((row) => ({
+        domain: row.domainName,
+        tld: "." + row.tld,
+        available: row.purchasable === true,
+        premium: row.premium === true,
+        retailPrice: applyMarkup(row.purchasePrice, "." + row.tld),
+        renewalRetail: applyMarkup(row.renewalPrice, "." + row.tld),
+      }));
+
+      // .com first, then the rest in user-supplied order
+      results.sort((a, b) => {
+        if (a.tld === ".com" && b.tld !== ".com") return -1;
+        if (b.tld === ".com" && a.tld !== ".com") return 1;
+        return 0;
+      });
+
+      res.json({ query: cleaned, results });
+    } catch (err) {
+      console.error("Domain search error:", err);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
 
   /**
    * POST /api/domains/connect

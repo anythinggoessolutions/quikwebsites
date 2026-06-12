@@ -55,6 +55,13 @@ export default function DomainPage() {
   const [disconnecting, setDisconnecting] = useState(false)
   const [copied, setCopied] = useState(null)
 
+  // ── Domain marketplace (buy a new domain) ──
+  const [tab, setTab] = useState('connect') // connect | buy
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState(null) // null = no search yet
+  const [searchError, setSearchError] = useState('')
+
   useEffect(() => {
     if (isDemo) return
     if (!authLoading && !user) navigate('/auth', { replace: true })
@@ -167,6 +174,35 @@ export default function DomainPage() {
   const isActive = status?.active === true
   const isPending = status?.connected && !isActive
   const isUnconnected = !status?.connected && !connectResult
+
+  const handleSearch = async (e) => {
+    e?.preventDefault()
+    const q = searchQuery.trim()
+    if (!q || searching) return
+    setSearchError('')
+    setSearching(true)
+    try {
+      const res = await fetch(`${API_URL}/api/domains/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Search failed')
+      setSearchResults(data.results || [])
+    } catch (err) {
+      setSearchError(err.message || 'Search failed')
+      setSearchResults([])
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  // Phase 1 buy: open Name.com checkout in a new tab with the domain pre-filled.
+  // Phase 2 (when we wire Stripe + Name.com purchase API): real in-app purchase + auto-connect.
+  const startBuy = (domain) => {
+    window.open(`https://www.name.com/domain/search/${encodeURIComponent(domain)}`, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <div className="dn-page">
@@ -326,74 +362,162 @@ export default function DomainPage() {
           </motion.div>
         )}
 
-        {/* ── Unconnected: connect form ── */}
+        {/* ── Unconnected: tab toggle + (connect form OR buy marketplace) ── */}
         {site && site.status === 'published' && isUnconnected && (
-          <motion.div
-            className="dn-card"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h2>Connect your own domain</h2>
-            <p className="dn-lede">
-              Point your domain at this site. Takes about 5 minutes to set up
-              and 4–24 hours to fully propagate. SSL is automatic and free.
-            </p>
-
-            <form onSubmit={handleConnect} className="dn-form">
-              <label htmlFor="dn-domain">Your domain</label>
-              <input
-                id="dn-domain"
-                type="text"
-                placeholder="yourbrand.com"
-                value={domainInput}
-                onChange={(e) => setDomainInput(e.target.value)}
-                autoComplete="off"
-                autoFocus
-                disabled={connecting}
-              />
-              <span className="dn-form-help">
-                Just the domain — no "https://" or "www" in front.
-              </span>
-
-              {connectError && <p className="dn-error">{connectError}</p>}
-
-              <motion.button
-                type="submit"
-                className="dn-btn-primary"
-                whileHover={{ scale: connecting ? 1 : 1.02 }}
-                whileTap={{ scale: connecting ? 1 : 0.98 }}
-                disabled={connecting || !domainInput.trim()}
+          <>
+            <div className="dn-tabs">
+              <button
+                className={tab === 'connect' ? 'dn-tab-on' : ''}
+                onClick={() => setTab('connect')}
               >
-                {connecting ? 'Setting up your domain…' : 'Connect Domain'}
-              </motion.button>
-            </form>
-
-            <div className="dn-faq">
-              <details>
-                <summary>I don't own a domain yet</summary>
-                <p>
-                  Buy one from any registrar — we recommend Cloudflare or
-                  Namecheap for the lowest prices. Once you own it, come back
-                  here.
-                </p>
-              </details>
-              <details>
-                <summary>Will my email keep working?</summary>
-                <p>
-                  If your email is on Google Workspace, yes — we configure those
-                  records automatically. For other providers, contact support
-                  before connecting and we'll handle the MX records for you.
-                </p>
-              </details>
-              <details>
-                <summary>How long does it take?</summary>
-                <p>
-                  Most domains go live within an hour after you update your
-                  nameservers. The maximum is 24–48 hours, but that's rare.
-                </p>
-              </details>
+                I already own a domain
+              </button>
+              <button
+                className={tab === 'buy' ? 'dn-tab-on' : ''}
+                onClick={() => setTab('buy')}
+              >
+                I need a new domain
+              </button>
             </div>
-          </motion.div>
+
+            {tab === 'buy' && (
+              <motion.div
+                className="dn-card"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h2>Find your domain</h2>
+                <p className="dn-lede">
+                  Search for a name. We'll show you what's available and what it
+                  costs. Buy in one click and we'll connect it for you.
+                </p>
+
+                <form onSubmit={handleSearch} className="dn-search-row">
+                  <input
+                    type="text"
+                    placeholder="e.g. bellaspizza or bellaspizza.com"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    disabled={searching}
+                  />
+                  <button type="submit" disabled={searching || !searchQuery.trim()}>
+                    {searching ? '...' : 'Search'}
+                  </button>
+                </form>
+
+                {searchError && <p className="dn-error">{searchError}</p>}
+
+                {searching && (
+                  <div className="dn-results-loading"><div className="dn-spinner" /></div>
+                )}
+
+                {!searching && Array.isArray(searchResults) && searchResults.length === 0 && (
+                  <p className="dn-empty">No results. Try a different name.</p>
+                )}
+
+                {!searching && Array.isArray(searchResults) && searchResults.length > 0 && (
+                  <ul className="dn-results">
+                    {searchResults.map((r) => (
+                      <li key={r.domain} className={`dn-result ${!r.available ? 'dn-result-taken' : ''}`}>
+                        <div className="dn-result-name">
+                          <span className="dn-domain">{r.domain}</span>
+                          {!r.available && <span className="dn-tag">Taken</span>}
+                          {r.premium && <span className="dn-tag dn-tag-premium">Premium</span>}
+                        </div>
+                        {r.available ? (
+                          <div className="dn-result-price-buy">
+                            <div className="dn-price-stack">
+                              <span className="dn-price">${r.retailPrice}</span>
+                              <span className="dn-price-renews">
+                                Renews at ${r.renewalRetail}/yr
+                              </span>
+                            </div>
+                            <motion.button
+                              className="dn-buy-btn"
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => startBuy(r.domain)}
+                            >
+                              Buy domain →
+                            </motion.button>
+                          </div>
+                        ) : (
+                          <span className="dn-result-taken-label">—</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <p className="dn-buy-note">
+                  Prices include WHOIS privacy, free SSL, and we'll auto-link
+                  the domain to <strong>{site.name}</strong> once you buy.
+                </p>
+              </motion.div>
+            )}
+
+            {tab === 'connect' && (
+              <motion.div
+                className="dn-card"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h2>Connect your own domain</h2>
+                <p className="dn-lede">
+                  Point your domain at this site. Takes about 5 minutes to set up
+                  and 4–24 hours to fully propagate. SSL is automatic and free.
+                </p>
+
+                <form onSubmit={handleConnect} className="dn-form">
+                  <label htmlFor="dn-domain">Your domain</label>
+                  <input
+                    id="dn-domain"
+                    type="text"
+                    placeholder="yourbrand.com"
+                    value={domainInput}
+                    onChange={(e) => setDomainInput(e.target.value)}
+                    autoComplete="off"
+                    autoFocus
+                    disabled={connecting}
+                  />
+                  <span className="dn-form-help">
+                    Just the domain — no "https://" or "www" in front.
+                  </span>
+
+                  {connectError && <p className="dn-error">{connectError}</p>}
+
+                  <motion.button
+                    type="submit"
+                    className="dn-btn-primary"
+                    whileHover={{ scale: connecting ? 1 : 1.02 }}
+                    whileTap={{ scale: connecting ? 1 : 0.98 }}
+                    disabled={connecting || !domainInput.trim()}
+                  >
+                    {connecting ? 'Setting up your domain…' : 'Connect Domain'}
+                  </motion.button>
+                </form>
+
+                <div className="dn-faq">
+                  <details>
+                    <summary>Will my email keep working?</summary>
+                    <p>
+                      If your email is on Google Workspace, yes — we configure those
+                      records automatically. For other providers, contact support
+                      before connecting and we'll handle the MX records for you.
+                    </p>
+                  </details>
+                  <details>
+                    <summary>How long does it take?</summary>
+                    <p>
+                      Most domains go live within an hour after you update your
+                      nameservers. The maximum is 24–48 hours, but that's rare.
+                    </p>
+                  </details>
+                </div>
+              </motion.div>
+            )}
+          </>
         )}
 
         {/* Still loading status */}
@@ -447,6 +571,184 @@ export default function DomainPage() {
           max-width: 720px;
           margin: 0 auto;
           padding: 40px 24px 80px;
+        }
+
+        /* Tabs */
+        .dn-tabs {
+          display: flex;
+          gap: 6px;
+          padding: 4px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          margin-bottom: 18px;
+          max-width: 540px;
+        }
+        .dn-tabs button {
+          flex: 1;
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.55);
+          background: none;
+          border: none;
+          border-radius: 9px;
+          padding: 10px 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .dn-tabs button:hover { color: #fff; }
+        .dn-tabs .dn-tab-on {
+          color: #fff;
+          background: rgba(91,80,232,0.22);
+          box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        /* Search row (buy tab) */
+        .dn-search-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        .dn-search-row input {
+          flex: 1;
+          font-family: 'Inter', sans-serif;
+          font-size: 15px;
+          color: #fff;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 11px;
+          padding: 13px 16px;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        .dn-search-row input:focus { border-color: rgba(91,80,232,0.55); }
+        .dn-search-row input::placeholder { color: rgba(255,255,255,0.25); }
+        .dn-search-row button {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+          background: linear-gradient(135deg, #5b50e8, #7c6af5);
+          border: none;
+          border-radius: 11px;
+          padding: 0 22px;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(91,80,232,0.3);
+        }
+        .dn-search-row button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        /* Results list */
+        .dn-results {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .dn-result {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 14px 16px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 12px;
+        }
+        .dn-result-taken {
+          opacity: 0.55;
+        }
+        .dn-result-name {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .dn-domain {
+          font-family: 'JetBrains Mono', 'SF Mono', monospace;
+          font-size: 15px;
+          font-weight: 600;
+          color: #fff;
+        }
+        .dn-tag {
+          font-family: 'Inter', sans-serif;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.6px;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.55);
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 50px;
+          padding: 3px 8px;
+        }
+        .dn-tag-premium {
+          color: #FFD60A;
+          background: rgba(255,214,10,0.08);
+          border-color: rgba(255,214,10,0.3);
+        }
+        .dn-result-price-buy {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .dn-price-stack {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 2px;
+        }
+        .dn-price {
+          font-family: 'Sora', 'Inter', sans-serif;
+          font-size: 16px;
+          font-weight: 700;
+          color: #00C65A;
+        }
+        .dn-price-renews {
+          font-family: 'Inter', sans-serif;
+          font-size: 11px;
+          color: rgba(255,255,255,0.35);
+        }
+        .dn-buy-btn {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          background: linear-gradient(135deg, #5b50e8, #7c6af5);
+          border: none;
+          border-radius: 10px;
+          padding: 10px 16px;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(91,80,232,0.3);
+          white-space: nowrap;
+        }
+        .dn-result-taken-label {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          color: rgba(255,255,255,0.3);
+        }
+        .dn-results-loading {
+          display: flex;
+          justify-content: center;
+          padding: 40px 0;
+        }
+        .dn-empty {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          color: rgba(255,255,255,0.4) !important;
+          text-align: center;
+          padding: 24px 0;
+          margin: 0 !important;
+        }
+        .dn-buy-note {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          color: rgba(255,255,255,0.35) !important;
+          text-align: center;
+          margin: 20px 0 0 !important;
+          line-height: 1.5;
         }
 
         /* Card */
@@ -754,6 +1056,12 @@ export default function DomainPage() {
           .dn-ns-row { flex-direction: column; align-items: flex-start; gap: 8px; }
           .dn-actions { flex-direction: column; align-items: stretch; }
           .dn-actions .dn-btn-secondary { text-align: center; }
+          .dn-result {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .dn-result-price-buy { justify-content: space-between; }
         }
       `}</style>
     </div>
