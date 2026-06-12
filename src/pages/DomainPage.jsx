@@ -529,21 +529,23 @@ export default function DomainPage() {
       <style>{`
         .dn-page {
           min-height: 100vh;
-          background: #07051a;
-          color: #fff;
+          background: #f6f7fb;
+          color: #111827;
         }
 
-        /* Nav */
+        /* Nav — stays dark for continuity with the site viewer */
         .dn-nav {
           display: flex; align-items: center; justify-content: space-between;
           gap: 16px;
           padding: 14px 24px;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
+          background: #111119;
+          color: #fff;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .dn-back {
           font-family: 'Inter', sans-serif;
           font-size: 13px; font-weight: 500;
-          color: rgba(255,255,255,0.6);
+          color: rgba(255,255,255,0.65);
           background: none; border: none;
           cursor: pointer; padding: 6px 12px;
           border-radius: 8px; transition: all 0.2s;
@@ -553,15 +555,16 @@ export default function DomainPage() {
         .dn-site-name {
           font-family: 'Inter', sans-serif;
           font-size: 14px; font-weight: 600;
+          color: #fff;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .dn-badge {
           font-family: 'Inter', sans-serif;
           font-size: 10px; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.5px;
-          color: #7c6af5;
-          background: rgba(91,80,232,0.12);
-          border: 1px solid rgba(91,80,232,0.35);
+          color: #b3aaff;
+          background: rgba(91,80,232,0.22);
+          border: 1px solid rgba(91,80,232,0.55);
           padding: 3px 9px; border-radius: 50px;
         }
         .dn-nav-right { width: 60px; }
@@ -578,10 +581,10 @@ export default function DomainPage() {
           display: flex;
           gap: 6px;
           padding: 4px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: #eef0f4;
+          border: 1px solid #e5e7eb;
           border-radius: 12px;
-          margin-bottom: 18px;
+          margin-bottom: 20px;
           max-width: 540px;
         }
         .dn-tabs button {
@@ -589,7 +592,7 @@ export default function DomainPage() {
           font-family: 'Inter', sans-serif;
           font-size: 13px;
           font-weight: 600;
-          color: rgba(255,255,255,0.55);
+          color: #6b7280;
           background: none;
           border: none;
           border-radius: 9px;
@@ -597,33 +600,36 @@ export default function DomainPage() {
           cursor: pointer;
           transition: all 0.2s;
         }
-        .dn-tabs button:hover { color: #fff; }
+        .dn-tabs button:hover { color: #111827; }
         .dn-tabs .dn-tab-on {
-          color: #fff;
-          background: rgba(91,80,232,0.22);
-          box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+          color: #111827;
+          background: #ffffff;
+          box-shadow: 0 1px 2px rgba(17,24,39,0.06), 0 0 0 1px rgba(17,24,39,0.04);
         }
 
         /* Search row (buy tab) */
         .dn-search-row {
           display: flex;
           gap: 10px;
-          margin-bottom: 18px;
+          margin-bottom: 20px;
         }
         .dn-search-row input {
           flex: 1;
           font-family: 'Inter', sans-serif;
           font-size: 15px;
-          color: #fff;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
+          color: #111827;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
           border-radius: 11px;
           padding: 13px 16px;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .dn-search-row input:focus { border-color: rgba(91,80,232,0.55); }
-        .dn-search-row input::placeholder { color: rgba(255,255,255,0.25); }
+        .dn-search-row input:focus {
+          border-color: #5b50e8;
+          box-shadow: 0 0 0 3px rgba(91,80,232,0.12);
+        }
+        .dn-search-row input::placeholder { color: #9ca3af; }
         .dn-search-row button {
           font-family: 'Inter', sans-serif;
           font-size: 14px;
@@ -634,7 +640,7 @@ export default function DomainPage() {
           border-radius: 11px;
           padding: 0 22px;
           cursor: pointer;
-          box-shadow: 0 4px 16px rgba(91,80,232,0.3);
+          box-shadow: 0 1px 2px rgba(91,80,232,0.18), 0 4px 16px rgba(91,80,232,0.22);
         }
         .dn-search-row button:disabled { opacity: 0.55; cursor: not-allowed; }
 
@@ -653,12 +659,13 @@ export default function DomainPage() {
           justify-content: space-between;
           gap: 12px;
           padding: 14px 16px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
           border-radius: 12px;
         }
         .dn-result-taken {
-          opacity: 0.55;
+          background: #f9fafb;
+          opacity: 0.7;
         }
         .dn-result-name {
           display: flex;
@@ -670,7 +677,7 @@ export default function DomainPage() {
           font-family: 'JetBrains Mono', 'SF Mono', monospace;
           font-size: 15px;
           font-weight: 600;
-          color: #fff;
+          color: #111827;
         }
         .dn-tag {
           font-family: 'Inter', sans-serif;
@@ -678,16 +685,16 @@ export default function DomainPage() {
           font-weight: 700;
           letter-spacing: 0.6px;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.55);
-          background: rgba(255,255,255,0.07);
-          border: 1px solid rgba(255,255,255,0.12);
+          color: #6b7280;
+          background: #f3f4f6;
+          border: 1px solid #e5e7eb;
           border-radius: 50px;
           padding: 3px 8px;
         }
         .dn-tag-premium {
-          color: #FFD60A;
-          background: rgba(255,214,10,0.08);
-          border-color: rgba(255,214,10,0.3);
+          color: #b45309;
+          background: #fef3c7;
+          border-color: #fde68a;
         }
         .dn-result-price-buy {
           display: flex;
@@ -702,14 +709,14 @@ export default function DomainPage() {
         }
         .dn-price {
           font-family: 'Sora', 'Inter', sans-serif;
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 700;
-          color: #00C65A;
+          color: #047857;
         }
         .dn-price-renews {
           font-family: 'Inter', sans-serif;
           font-size: 11px;
-          color: rgba(255,255,255,0.35);
+          color: #9ca3af;
         }
         .dn-buy-btn {
           font-family: 'Inter', sans-serif;
@@ -721,13 +728,13 @@ export default function DomainPage() {
           border-radius: 10px;
           padding: 10px 16px;
           cursor: pointer;
-          box-shadow: 0 4px 16px rgba(91,80,232,0.3);
+          box-shadow: 0 1px 2px rgba(91,80,232,0.18), 0 4px 16px rgba(91,80,232,0.22);
           white-space: nowrap;
         }
         .dn-result-taken-label {
           font-family: 'Inter', sans-serif;
           font-size: 13px;
-          color: rgba(255,255,255,0.3);
+          color: #9ca3af;
         }
         .dn-results-loading {
           display: flex;
@@ -737,7 +744,7 @@ export default function DomainPage() {
         .dn-empty {
           font-family: 'Inter', sans-serif;
           font-size: 14px;
-          color: rgba(255,255,255,0.4) !important;
+          color: #6b7280 !important;
           text-align: center;
           padding: 24px 0;
           margin: 0 !important;
@@ -745,46 +752,49 @@ export default function DomainPage() {
         .dn-buy-note {
           font-family: 'Inter', sans-serif;
           font-size: 12px;
-          color: rgba(255,255,255,0.35) !important;
+          color: #6b7280 !important;
           text-align: center;
           margin: 20px 0 0 !important;
           line-height: 1.5;
         }
+        .dn-buy-note strong { color: #111827; }
 
         /* Card */
         .dn-card {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
           border-radius: 18px;
           padding: 32px 28px;
+          box-shadow: 0 1px 3px rgba(17,24,39,0.04), 0 1px 2px rgba(17,24,39,0.02);
         }
         .dn-card h2 {
           font-family: 'Sora', 'Inter', sans-serif;
           font-size: 22px; font-weight: 700;
           letter-spacing: -0.3px;
+          color: #111827;
           margin: 0 0 10px;
         }
         .dn-card p {
           font-family: 'Inter', sans-serif;
           font-size: 14px;
-          color: rgba(255,255,255,0.6);
+          color: #4b5563;
           line-height: 1.55;
           margin: 0;
         }
-        .dn-card p strong { color: #fff; }
+        .dn-card p strong { color: #111827; }
 
         .dn-card-warn {
-          background: rgba(255,214,10,0.06);
-          border-color: rgba(255,214,10,0.25);
+          background: #fffbeb;
+          border-color: #fde68a;
         }
         .dn-card-success {
-          background: rgba(0,198,90,0.06);
-          border-color: rgba(0,198,90,0.25);
+          background: #f0fdf4;
+          border-color: #bbf7d0;
         }
 
         .dn-lede {
           font-size: 14px;
-          color: rgba(255,255,255,0.55);
+          color: #4b5563;
           margin: 0 0 20px !important;
         }
 
@@ -803,15 +813,15 @@ export default function DomainPage() {
         }
         .dn-pulse {
           width: 14px; height: 14px;
-          background: #FFD60A;
+          background: #d97706;
           border-radius: 50%;
           flex-shrink: 0;
           margin-top: 8px;
           animation: dnPulse 1.8s ease-in-out infinite;
         }
         @keyframes dnPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(255,214,10,0.5); }
-          50% { box-shadow: 0 0 0 10px rgba(255,214,10,0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(217,119,6,0.5); }
+          50% { box-shadow: 0 0 0 10px rgba(217,119,6,0); }
         }
         .dn-pending-head h2 { margin-bottom: 6px; }
 
@@ -830,9 +840,9 @@ export default function DomainPage() {
           flex-shrink: 0;
           width: 28px; height: 28px;
           border-radius: 50%;
-          background: rgba(91,80,232,0.18);
-          border: 1px solid rgba(91,80,232,0.45);
-          color: #b3aaff;
+          background: #eef0ff;
+          border: 1px solid #c7c2f5;
+          color: #5b50e8;
           font-family: 'Sora', 'Inter', sans-serif;
           font-weight: 700; font-size: 13px;
           display: flex; align-items: center; justify-content: center;
@@ -840,12 +850,12 @@ export default function DomainPage() {
         .dn-steps strong {
           font-family: 'Inter', sans-serif;
           font-size: 14px; font-weight: 600;
-          color: #fff;
+          color: #111827;
           display: block; margin-bottom: 4px;
         }
         .dn-steps p {
           font-size: 13px !important;
-          color: rgba(255,255,255,0.5) !important;
+          color: #4b5563 !important;
           margin: 0 !important;
         }
 
@@ -858,24 +868,24 @@ export default function DomainPage() {
         .dn-ns-row {
           display: flex; align-items: center; justify-content: space-between;
           gap: 12px;
-          background: rgba(0,0,0,0.35);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: #f3f4f6;
+          border: 1px solid #e5e7eb;
           border-radius: 10px;
           padding: 12px 14px;
         }
         .dn-ns-row code {
           font-family: 'JetBrains Mono', 'SF Mono', monospace;
           font-size: 13px;
-          color: #fff;
+          color: #111827;
           background: none;
           word-break: break-all;
         }
         .dn-copy-btn {
           font-family: 'Inter', sans-serif;
           font-size: 12px; font-weight: 600;
-          color: rgba(255,255,255,0.7);
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.12);
+          color: #4b5563;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
           border-radius: 7px;
           padding: 6px 12px;
           cursor: pointer;
@@ -883,8 +893,9 @@ export default function DomainPage() {
           transition: all 0.2s;
         }
         .dn-copy-btn:hover {
-          background: rgba(255,255,255,0.14);
-          color: #fff;
+          background: #f9fafb;
+          color: #111827;
+          border-color: #9ca3af;
         }
 
         /* Form */
@@ -896,27 +907,30 @@ export default function DomainPage() {
         .dn-form label {
           font-family: 'Inter', sans-serif;
           font-size: 13px; font-weight: 500;
-          color: rgba(255,255,255,0.6);
+          color: #4b5563;
           margin-bottom: 2px;
         }
         .dn-form input {
           font-family: 'Inter', sans-serif;
           font-size: 16px;
-          color: #fff;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
+          color: #111827;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
           border-radius: 12px;
           padding: 14px 16px;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .dn-form input:focus { border-color: rgba(91,80,232,0.55); }
-        .dn-form input::placeholder { color: rgba(255,255,255,0.25); }
+        .dn-form input:focus {
+          border-color: #5b50e8;
+          box-shadow: 0 0 0 3px rgba(91,80,232,0.12);
+        }
+        .dn-form input::placeholder { color: #9ca3af; }
         .dn-form input:disabled { opacity: 0.55; }
         .dn-form-help {
           font-family: 'Inter', sans-serif;
           font-size: 12px;
-          color: rgba(255,255,255,0.35);
+          color: #6b7280;
           margin-bottom: 8px;
         }
 
@@ -930,7 +944,7 @@ export default function DomainPage() {
           border-radius: 12px;
           padding: 14px 24px;
           cursor: pointer;
-          box-shadow: 0 4px 20px rgba(91,80,232,0.3);
+          box-shadow: 0 1px 2px rgba(91,80,232,0.2), 0 4px 16px rgba(91,80,232,0.25);
           margin-top: 8px;
         }
         .dn-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -938,23 +952,26 @@ export default function DomainPage() {
         .dn-btn-secondary {
           font-family: 'Inter', sans-serif;
           font-size: 14px; font-weight: 600;
-          color: #fff;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
+          color: #111827;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
           border-radius: 10px;
           padding: 11px 20px;
           cursor: pointer;
           text-decoration: none;
           display: inline-block;
-          transition: background 0.2s;
+          transition: all 0.2s;
         }
-        .dn-btn-secondary:hover { background: rgba(255,255,255,0.13); }
+        .dn-btn-secondary:hover {
+          background: #f9fafb;
+          border-color: #9ca3af;
+        }
         .dn-btn-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
 
         .dn-btn-danger-text {
           font-family: 'Inter', sans-serif;
           font-size: 13px; font-weight: 500;
-          color: rgba(239,68,68,0.85);
+          color: #dc2626;
           background: none; border: none;
           cursor: pointer;
           padding: 8px 12px;
@@ -962,8 +979,8 @@ export default function DomainPage() {
           transition: background 0.2s;
         }
         .dn-btn-danger-text:hover {
-          background: rgba(239,68,68,0.08);
-          color: #ef4444;
+          background: #fef2f2;
+          color: #b91c1c;
         }
         .dn-btn-danger-text:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -976,9 +993,9 @@ export default function DomainPage() {
         .dn-error {
           font-family: 'Inter', sans-serif;
           font-size: 13px !important;
-          color: #ef4444 !important;
-          background: rgba(239,68,68,0.08);
-          border: 1px solid rgba(239,68,68,0.18);
+          color: #b91c1c !important;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
           border-radius: 10px;
           padding: 10px 14px;
           margin: 8px 0 0 !important;
@@ -989,7 +1006,7 @@ export default function DomainPage() {
           display: flex; flex-direction: column;
           gap: 4px;
           margin-top: 28px;
-          border-top: 1px solid rgba(255,255,255,0.06);
+          border-top: 1px solid #e5e7eb;
           padding-top: 20px;
         }
         .dn-faq details {
@@ -998,7 +1015,7 @@ export default function DomainPage() {
         .dn-faq summary {
           font-family: 'Inter', sans-serif;
           font-size: 13px; font-weight: 600;
-          color: rgba(255,255,255,0.7);
+          color: #374151;
           padding: 10px 0;
           cursor: pointer;
           list-style: none;
@@ -1009,13 +1026,13 @@ export default function DomainPage() {
           display: inline-block;
           width: 18px;
           font-weight: 400;
-          color: rgba(255,255,255,0.3);
+          color: #9ca3af;
         }
         .dn-faq details[open] summary::before { content: '−'; }
-        .dn-faq summary:hover { color: #fff; }
+        .dn-faq summary:hover { color: #111827; }
         .dn-faq details p {
           font-size: 13px !important;
-          color: rgba(255,255,255,0.5) !important;
+          color: #4b5563 !important;
           padding: 0 0 12px 18px;
           margin: 0;
           line-height: 1.5;
@@ -1030,19 +1047,19 @@ export default function DomainPage() {
         }
         .dn-message p {
           font-family: 'Inter', sans-serif;
-          font-size: 15px; color: rgba(255,255,255,0.5);
+          font-size: 15px; color: #4b5563;
           margin: 0;
         }
         .dn-message button {
           font-family: 'Inter', sans-serif;
-          font-size: 13px; font-weight: 600; color: #fff;
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
+          font-size: 13px; font-weight: 600; color: #111827;
+          background: #ffffff;
+          border: 1px solid #d1d5db;
           border-radius: 10px; padding: 10px 24px; cursor: pointer;
         }
         .dn-spinner {
           width: 32px; height: 32px;
-          border: 3px solid rgba(255,255,255,0.12);
+          border: 3px solid #e5e7eb;
           border-top-color: #5b50e8;
           border-radius: 50%;
           animation: dnSpin 0.8s linear infinite;
