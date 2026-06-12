@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../lib/useAuth.jsx'
 import { supabase } from '../lib/supabase'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
 const STATUS_LABELS = {
   draft: { text: 'Draft', color: '#FFD60A' },
   published: { text: 'Live', color: '#00C65A' },
@@ -16,6 +18,9 @@ export default function SiteViewPage() {
   const { user, loading: authLoading } = useAuth()
   const [site, setSite] = useState(null)
   const [error, setError] = useState('')
+  const [plan, setPlan] = useState(null) // null = loading
+  const [publishing, setPublishing] = useState(false)
+  const [publishError, setPublishError] = useState('')
   const iframeRef = useRef(null)
 
   useEffect(() => {
@@ -37,6 +42,36 @@ export default function SiteViewPage() {
         }
       })
   }, [user, id])
+
+  // Know the user's plan — paid users publish directly, free users see pricing
+  useEffect(() => {
+    if (!user) return
+    fetch(`${API_URL}/api/credits?userId=${user.id}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => setPlan(d?.plan || 'free'))
+      .catch(() => setPlan('free'))
+  }, [user])
+
+  const publish = async () => {
+    if (publishing) return
+    setPublishing(true)
+    setPublishError('')
+    try {
+      const res = await fetch(`${API_URL}/api/sites/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: id, userId: user.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Publish failed')
+      const slug = data.siteUrl ? data.siteUrl.split('.')[0] : site.slug
+      setSite(s => ({ ...s, status: 'published', slug }))
+    } catch (err) {
+      setPublishError(err.message || 'Publish failed')
+    } finally {
+      setPublishing(false)
+    }
+  }
 
   // Render the site HTML into the iframe
   useEffect(() => {
@@ -100,18 +135,34 @@ export default function SiteViewPage() {
               Visit Site ↗
             </a>
           )}
-          {site && site.status !== 'published' && (
-            <motion.button
-              className="sv-cta"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/pricing?ready=1')}
-            >
-              Go Live →
-            </motion.button>
+          {site && site.status !== 'published' && plan !== null && (
+            plan === 'free' ? (
+              <motion.button
+                className="sv-cta"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate('/pricing?ready=1')}
+              >
+                Go Live →
+              </motion.button>
+            ) : (
+              <motion.button
+                className="sv-cta"
+                whileHover={{ scale: publishing ? 1 : 1.03 }}
+                whileTap={{ scale: publishing ? 1 : 0.97 }}
+                disabled={publishing}
+                onClick={publish}
+              >
+                {publishing ? 'Publishing…' : '🚀 Publish Site'}
+              </motion.button>
+            )
           )}
         </div>
       </div>
+
+      {publishError && (
+        <div className="sv-publish-error">{publishError}</div>
+      )}
 
       <div className="sv-frame-wrap">
         {error && (
@@ -221,6 +272,16 @@ export default function SiteViewPage() {
           border-radius: 10px;
           cursor: pointer;
           box-shadow: 0 4px 16px rgba(91,80,232,0.4);
+        }
+        .sv-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+        .sv-publish-error {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          color: #ef4444;
+          background: rgba(239,68,68,0.08);
+          border-bottom: 1px solid rgba(239,68,68,0.2);
+          padding: 10px 20px;
+          text-align: center;
         }
         .sv-frame-wrap {
           flex: 1;
