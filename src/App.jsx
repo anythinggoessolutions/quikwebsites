@@ -19,6 +19,7 @@ import ContactSupport from './pages/ContactSupport'
 import GeneratePage from './pages/GeneratePage'
 import AuthPage from './pages/AuthPage'
 import DashboardPage from './pages/DashboardPage'
+import SiteViewPage from './pages/SiteViewPage'
 
 function LandingPage() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/sites/:id" element={<SiteViewPage />} />
           <Route path="/generate" element={<GeneratePage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGenerate } from "../lib/useGenerate";
+import { useAuth } from "../lib/useAuth.jsx";
 
 /* ─── Progress message sequence (rotates while generating) ─── */
 const PROGRESS_MESSAGES = [
@@ -541,6 +542,7 @@ function ProgressBar({ progress }) {
 
 /* ─── Site Preview (iframe) ─── */
 function SitePreview({ html, onBack }) {
+  const navigate = useNavigate();
   const iframeRef = useRef(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
@@ -576,6 +578,7 @@ function SitePreview({ html, onBack }) {
             className="gen-toolbar-cta"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            onClick={() => navigate("/dashboard")}
           >
             Go Live — Pick a Plan →
           </motion.button>
@@ -635,6 +638,7 @@ export default function GeneratePage() {
 
   const { generate, status, html, error, isGenerating, result } =
     useGenerate();
+  const { user, loading: authLoading } = useAuth();
 
   const [msgIndex, setMsgIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -643,13 +647,21 @@ export default function GeneratePage() {
 
   const isMock = searchParams.get("mock") === "1";
 
-  // Start generation on mount
+  // Start generation once we know who the user is
   useEffect(() => {
-    if (hasStarted.current) return;
+    if (hasStarted.current || authLoading) return;
     if (!businessName && !description) {
       navigate("/");
       return;
     }
+
+    // Account required before generating — send to signup, then come back here
+    if (!user && !isMock) {
+      const next = encodeURIComponent(`/generate?${searchParams.toString()}`);
+      navigate(`/auth?mode=signup&next=${next}`, { replace: true });
+      return;
+    }
+
     hasStarted.current = true;
 
     // Dev mode: skip API call, jump straight to preview with sample HTML
@@ -659,8 +671,8 @@ export default function GeneratePage() {
       return;
     }
 
-    generate({ businessName, businessType, description });
-  }, [businessName, businessType, description, generate, navigate, isMock]);
+    generate({ businessName, businessType, description, userId: user.id });
+  }, [businessName, businessType, description, generate, navigate, isMock, user, authLoading, searchParams]);
 
   // Cycle progress messages
   useEffect(() => {

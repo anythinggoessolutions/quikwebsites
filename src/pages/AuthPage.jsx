@@ -17,9 +17,13 @@ export default function AuthPage() {
 
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
+  // Where to go after auth — internal paths only (e.g. back to /generate)
+  const nextParam = searchParams.get('next')
+  const nextPath = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard'
+
   useEffect(() => {
-    if (user) navigate('/dashboard', { replace: true })
-  }, [user, navigate])
+    if (user) navigate(nextPath, { replace: true })
+  }, [user, navigate, nextPath])
 
   const handleLogin = async (e) => {
     e.preventDefault()

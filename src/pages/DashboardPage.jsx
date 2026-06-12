@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../lib/useAuth.jsx'
+import { supabase } from '../lib/supabase'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+const STATUS_LABELS = {
+  draft: { text: 'Draft', color: '#FFD60A' },
+  published: { text: 'Live', color: '#00C65A' },
+  unpublished: { text: 'Offline', color: '#94a3b8' },
+}
 
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
   const navigate = useNavigate()
   const [credits, setCredits] = useState(null)
-  const [sites, setSites] = useState(null)
+  const [sites, setSites] = useState(null) // null = loading, [] = none
   const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
@@ -23,6 +30,19 @@ export default function DashboardPage() {
       .then(r => r.ok ? r.json() : null)
       .then(setCredits)
       .catch(() => {})
+
+    supabase
+      .from('sites')
+      .select('id, name, business_type, status, slug, cloudflare_deployment_url, created_at')
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to load sites:', error.message)
+          setSites([])
+        } else {
+          setSites(data || [])
+        }
+      })
   }, [user])
 
   const handleSignOut = async () => {
@@ -106,16 +126,72 @@ export default function DashboardPage() {
         {/* Sites list */}
         <div className="dash-section">
           <h2>Your Websites</h2>
-          <div className="dash-empty">
-            <div className="dash-empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <path d="M8 21h8M12 17v4" />
-              </svg>
+
+          {sites === null && (
+            <div className="dash-sites-loading">
+              <div className="dash-spinner" />
             </div>
-            <p>No websites yet</p>
-            <span>Build your first website to see it here</span>
-          </div>
+          )}
+
+          {sites && sites.length === 0 && (
+            <div className="dash-empty">
+              <div className="dash-empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <path d="M8 21h8M12 17v4" />
+                </svg>
+              </div>
+              <p>No websites yet</p>
+              <span>Build your first website to see it here</span>
+            </div>
+          )}
+
+          {sites && sites.length > 0 && (
+            <div className="dash-sites-grid">
+              {sites.map((site) => {
+                const status = STATUS_LABELS[site.status] || STATUS_LABELS.draft
+                return (
+                  <motion.div
+                    key={site.id}
+                    className="dash-site-card"
+                    whileHover={{ y: -3 }}
+                    onClick={() => navigate(`/sites/${site.id}`)}
+                  >
+                    <div className="dash-site-top">
+                      <div className="dash-site-thumb">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="14" rx="2" />
+                          <path d="M2 8h20" />
+                          <circle cx="5" cy="5.5" r="0.5" fill="rgba(255,255,255,0.35)" />
+                        </svg>
+                      </div>
+                      <span
+                        className="dash-site-status"
+                        style={{ color: status.color, borderColor: `${status.color}44`, background: `${status.color}11` }}
+                      >
+                        {status.text}
+                      </span>
+                    </div>
+                    <h3 className="dash-site-name">{site.name}</h3>
+                    <p className="dash-site-meta">
+                      {site.business_type || 'Website'} · {new Date(site.created_at).toLocaleDateString()}
+                    </p>
+                    {site.status === 'published' && site.slug && (
+                      <a
+                        className="dash-site-url"
+                        href={`https://${site.slug}.quikwebsites.com`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {site.slug}.quikwebsites.com ↗
+                      </a>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -246,6 +322,72 @@ function DashStyles() {
         margin: 0 0 20px;
         letter-spacing: -0.3px;
       }
+
+      /* Sites grid */
+      .dash-sites-loading {
+        display: flex; justify-content: center;
+        padding: 48px 0;
+      }
+      .dash-sites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .dash-site-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 20px;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .dash-site-card:hover {
+        border-color: rgba(91,80,232,0.4);
+        background: rgba(255,255,255,0.06);
+      }
+      .dash-site-top {
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .dash-site-thumb {
+        width: 44px; height: 44px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .dash-site-status {
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 10px;
+        border-radius: 50px;
+        border: 1px solid;
+      }
+      .dash-site-name {
+        font-family: 'Sora', 'Inter', sans-serif;
+        font-size: 17px; font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .dash-site-meta {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: rgba(255,255,255,0.35);
+        margin: 0;
+        text-transform: capitalize;
+      }
+      .dash-site-url {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: #00C65A;
+        text-decoration: none;
+      }
+      .dash-site-url:hover { text-decoration: underline; }
 
       /* Empty state */
       .dash-empty {
