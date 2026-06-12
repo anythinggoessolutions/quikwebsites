@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { Router } from "express";
+import express, { Router } from "express";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -247,6 +247,76 @@ ${site.html_content}`;
       res.status(500).json({ error: "Image swap failed" });
     }
   });
+
+  /**
+   * POST /api/editor/upload-image?siteId=...&userId=...
+   * Upload a user photo to Supabase Storage. Body is the raw image bytes.
+   * Returns { url } — pair with /swap-image (source: "upload") to use it.
+   */
+  const IMAGE_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+
+  router.post(
+    "/upload-image",
+    express.raw({ type: Object.keys(IMAGE_TYPES), limit: "8mb" }),
+    async (req, res) => {
+      const { siteId, userId } = req.query;
+      if (!siteId || !userId) {
+        return res.status(400).json({ error: "Missing siteId or userId" });
+      }
+
+      const contentType = req.headers["content-type"];
+      const ext = IMAGE_TYPES[contentType];
+      if (!ext || !req.body?.length) {
+        return res.status(400).json({ error: "Send raw JPEG, PNG, WebP, or GIF image data" });
+      }
+
+      try {
+        // Verify ownership
+        const { data: site } = await supabase
+          .from("sites")
+          .select("id")
+          .eq("id", siteId)
+          .eq("user_id", userId)
+          .single();
+
+        if (!site) {
+          return res.status(404).json({ error: "Site not found" });
+        }
+
+        // Ensure the public bucket exists (idempotent — ignore "already exists")
+        const { error: bucketError } = await supabase.storage.createBucket("site-images", {
+          public: true,
+          fileSizeLimit: 8 * 1024 * 1024,
+        });
+        if (bucketError && !bucketError.message.includes("already exists")) {
+          console.warn("Bucket creation warning:", bucketError.message);
+        }
+
+        const path = `sites/${siteId}/uploads/upload-${Date.now()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("site-images")
+          .upload(path, req.body, { contentType, upsert: true });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("site-images")
+          .getPublicUrl(path);
+
+        res.json({ url: urlData.publicUrl });
+      } catch (err) {
+        console.error("Image upload error:", err);
+        res.status(500).json({ error: "Upload failed" });
+      }
+    }
+  );
 
   /**
    * GET /api/editor/versions?siteId=...&userId=...&limit=20

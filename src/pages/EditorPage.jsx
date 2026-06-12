@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../lib/useAuth.jsx'
@@ -30,6 +30,17 @@ export default function EditorPage() {
   const [versions, setVersions] = useState([])
   const [showHistory, setShowHistory] = useState(false)
   const [rollingBack, setRollingBack] = useState(null)
+
+  // Image swap modal
+  const [imagesOpen, setImagesOpen] = useState(false)
+  const [selectedOld, setSelectedOld] = useState(null) // src of the image being replaced
+  const [galleryTab, setGalleryTab] = useState('gallery') // gallery | upload
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [galleryError, setGalleryError] = useState('')
+  const [swapping, setSwapping] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const iframeRef = useRef(null)
 
@@ -81,6 +92,94 @@ export default function EditorPage() {
 
   const totalCredits = credits ? credits.totalCredits : null
   const outOfCredits = totalCredits !== null && totalCredits < 1
+
+  // All image URLs currently on the site (for the swap picker)
+  const siteImages = useMemo(() => {
+    if (!site?.html_content) return []
+    const doc = new DOMParser().parseFromString(site.html_content, 'text/html')
+    const srcs = [...doc.querySelectorAll('img')]
+      .map(img => img.getAttribute('src'))
+      .filter(src => src && !src.startsWith('data:'))
+    return [...new Set(srcs)]
+  }, [site?.html_content])
+
+  const searchPhotos = useCallback(async (q) => {
+    setSearching(true)
+    setGalleryError('')
+    try {
+      const url = q?.trim()
+        ? `${API_URL}/api/images/search?query=${encodeURIComponent(q.trim())}&per_page=24`
+        : `${API_URL}/api/images/curated?per_page=24`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Search failed')
+      setResults(data.photos || [])
+    } catch (err) {
+      setGalleryError(err.message || 'Search failed')
+    } finally {
+      setSearching(false)
+    }
+  }, [])
+
+  const openImages = () => {
+    setImagesOpen(true)
+    setSelectedOld(null)
+    setGalleryTab('gallery')
+    setGalleryError('')
+    if (results.length === 0) searchPhotos('')
+  }
+
+  const doSwap = async (newUrl, source) => {
+    if (swapping) return
+    setSwapping(true)
+    setGalleryError('')
+    try {
+      const res = await fetch(`${API_URL}/api/editor/swap-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: id,
+          userId: user.id,
+          imageSelector: selectedOld,
+          newImageUrl: newUrl,
+          source,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Swap failed')
+      setSite(s => ({ ...s, html_content: data.html }))
+      loadVersions()
+      setImagesOpen(false)
+      setSelectedOld(null)
+    } catch (err) {
+      setGalleryError(err.message || 'Swap failed')
+    } finally {
+      setSwapping(false)
+    }
+  }
+
+  const handleUpload = async (file) => {
+    if (!file || uploading || swapping) return
+    if (!file.type.startsWith('image/')) {
+      setGalleryError('Please choose an image file')
+      return
+    }
+    setUploading(true)
+    setGalleryError('')
+    try {
+      const res = await fetch(
+        `${API_URL}/api/editor/upload-image?siteId=${id}&userId=${user.id}`,
+        { method: 'POST', headers: { 'Content-Type': file.type }, body: file }
+      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      await doSwap(data.url, 'upload')
+    } catch (err) {
+      setGalleryError(err.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const applyEdit = async (text) => {
     const inst = (text || instruction).trim()
@@ -199,6 +298,15 @@ export default function EditorPage() {
             </div>
           )}
 
+          {/* Image swap — free, works even with 0 credits */}
+          <button
+            className="ed-swap-btn"
+            disabled={editing || !site}
+            onClick={openImages}
+          >
+            🖼 Swap an image — free
+          </button>
+
           {/* Quick ideas */}
           {!outOfCredits && (
             <div className="ed-ideas">
@@ -258,6 +366,142 @@ export default function EditorPage() {
             </>
           )}
         </div>
+
+        {/* ── Image swap modal ── */}
+        <AnimatePresence>
+          {imagesOpen && (
+            <motion.div
+              className="ed-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !swapping && !uploading && setImagesOpen(false)}
+            >
+              <motion.div
+                className="ed-modal"
+                initial={{ y: 24, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 16, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="ed-modal-head">
+                  <h3>
+                    {selectedOld
+                      ? 'Pick a replacement'
+                      : 'Which image do you want to change?'}
+                  </h3>
+                  <button onClick={() => setImagesOpen(false)}>✕</button>
+                </div>
+
+                {/* Step 1 — choose the image on the site */}
+                {!selectedOld && (
+                  siteImages.length === 0 ? (
+                    <p className="ed-modal-empty">
+                      No swappable images found on this site.
+                    </p>
+                  ) : (
+                    <div className="ed-img-grid">
+                      {siteImages.map(src => (
+                        <button
+                          key={src}
+                          className="ed-img-cell"
+                          onClick={() => setSelectedOld(src)}
+                        >
+                          <img src={src} alt="" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )}
+
+                {/* Step 2 — pick a replacement */}
+                {selectedOld && (
+                  <>
+                    <div className="ed-modal-tabs">
+                      <button
+                        className={galleryTab === 'gallery' ? 'on' : ''}
+                        onClick={() => setGalleryTab('gallery')}
+                      >
+                        Free photo gallery
+                      </button>
+                      <button
+                        className={galleryTab === 'upload' ? 'on' : ''}
+                        onClick={() => setGalleryTab('upload')}
+                      >
+                        Upload your own
+                      </button>
+                      <button
+                        className="ed-modal-backlink"
+                        onClick={() => setSelectedOld(null)}
+                      >
+                        ← Different image
+                      </button>
+                    </div>
+
+                    {galleryTab === 'gallery' && (
+                      <>
+                        <form
+                          className="ed-search-row"
+                          onSubmit={e => {
+                            e.preventDefault()
+                            searchPhotos(query)
+                          }}
+                        >
+                          <input
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            placeholder='Search free photos… e.g. "bakery interior"'
+                          />
+                          <button type="submit" disabled={searching}>
+                            {searching ? '...' : 'Search'}
+                          </button>
+                        </form>
+                        {searching ? (
+                          <div className="ed-modal-center"><div className="ed-spinner" /></div>
+                        ) : (
+                          <div className="ed-img-grid">
+                            {results.map(p => (
+                              <button
+                                key={p.id}
+                                className="ed-img-cell"
+                                disabled={swapping}
+                                onClick={() => doSwap(p.src.large, 'pexels')}
+                              >
+                                <img src={p.src.tiny} alt={p.alt || ''} loading="lazy" />
+                                <span className="ed-img-credit">{p.photographer}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {galleryTab === 'upload' && (
+                      <div className="ed-upload">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          id="ed-file-input"
+                          hidden
+                          onChange={e => handleUpload(e.target.files?.[0])}
+                        />
+                        <label htmlFor="ed-file-input" className="ed-upload-drop">
+                          {uploading || swapping
+                            ? 'Uploading…'
+                            : 'Click to choose a photo — JPG, PNG, WebP or GIF, up to 8MB'}
+                        </label>
+                      </div>
+                    )}
+
+                    {swapping && <p className="ed-working">Swapping image…</p>}
+                    {galleryError && <p className="ed-error">{galleryError}</p>}
+                  </>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── History drawer ── */}
         <AnimatePresence>
@@ -439,6 +683,154 @@ export default function EditorPage() {
           background: linear-gradient(135deg, #5b50e8, #7c6af5);
           border: none; border-radius: 10px;
           padding: 10px 18px; cursor: pointer;
+        }
+
+        /* Image swap button */
+        .ed-swap-btn {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px; font-weight: 600;
+          color: #fff;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 12px;
+          padding: 12px 20px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .ed-swap-btn:hover { background: rgba(255,255,255,0.12); }
+        .ed-swap-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        /* Image swap modal */
+        .ed-modal-backdrop {
+          position: absolute; inset: 0;
+          background: rgba(5,4,13,0.75);
+          backdrop-filter: blur(4px);
+          display: flex; align-items: center; justify-content: center;
+          z-index: 10;
+          padding: 24px;
+        }
+        .ed-modal {
+          width: 100%; max-width: 640px;
+          max-height: 80vh;
+          background: #12121d;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 18px;
+          padding: 22px;
+          overflow-y: auto;
+          display: flex; flex-direction: column; gap: 16px;
+        }
+        .ed-modal-head {
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .ed-modal-head h3 {
+          font-family: 'Sora', 'Inter', sans-serif;
+          font-size: 16px; font-weight: 700; color: #fff; margin: 0;
+        }
+        .ed-modal-head button {
+          background: none; border: none;
+          color: rgba(255,255,255,0.4);
+          font-size: 15px; cursor: pointer;
+        }
+        .ed-modal-empty {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px; color: rgba(255,255,255,0.4);
+          margin: 0; text-align: center; padding: 24px 0;
+        }
+        .ed-modal-tabs {
+          display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .ed-modal-tabs button {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px; font-weight: 600;
+          color: rgba(255,255,255,0.55);
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 50px;
+          padding: 8px 16px; cursor: pointer;
+          transition: all 0.2s;
+        }
+        .ed-modal-tabs button.on {
+          color: #fff;
+          background: rgba(91,80,232,0.25);
+          border-color: rgba(91,80,232,0.5);
+        }
+        .ed-modal-backlink {
+          margin-left: auto;
+          background: none !important;
+          border: none !important;
+        }
+        .ed-search-row { display: flex; gap: 8px; }
+        .ed-search-row input {
+          flex: 1;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px; color: #fff;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 10px;
+          padding: 10px 14px;
+          outline: none;
+        }
+        .ed-search-row input:focus { border-color: rgba(91,80,232,0.5); }
+        .ed-search-row input::placeholder { color: rgba(255,255,255,0.25); }
+        .ed-search-row button {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px; font-weight: 600; color: #fff;
+          background: linear-gradient(135deg, #5b50e8, #7c6af5);
+          border: none; border-radius: 10px;
+          padding: 10px 20px; cursor: pointer;
+        }
+        .ed-img-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+          gap: 10px;
+        }
+        .ed-img-cell {
+          position: relative;
+          aspect-ratio: 4 / 3;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 10px;
+          overflow: hidden;
+          padding: 0; cursor: pointer;
+          background: rgba(255,255,255,0.04);
+          transition: border-color 0.2s, transform 0.15s;
+        }
+        .ed-img-cell:hover {
+          border-color: rgba(91,80,232,0.7);
+          transform: scale(1.02);
+        }
+        .ed-img-cell:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ed-img-cell img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+        }
+        .ed-img-credit {
+          position: absolute; left: 0; right: 0; bottom: 0;
+          font-family: 'Inter', sans-serif;
+          font-size: 10px; color: rgba(255,255,255,0.85);
+          background: linear-gradient(transparent, rgba(0,0,0,0.75));
+          padding: 12px 8px 5px;
+          text-align: left;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ed-modal-center {
+          display: flex; justify-content: center; padding: 32px 0;
+        }
+        .ed-upload { padding: 8px 0; }
+        .ed-upload-drop {
+          display: block;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px; color: rgba(255,255,255,0.55);
+          text-align: center;
+          border: 2px dashed rgba(255,255,255,0.15);
+          border-radius: 14px;
+          padding: 44px 20px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .ed-upload-drop:hover {
+          border-color: rgba(91,80,232,0.5);
+          color: #fff;
+          background: rgba(91,80,232,0.05);
         }
 
         /* Quick ideas */
