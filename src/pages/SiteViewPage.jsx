@@ -70,6 +70,16 @@ export default function SiteViewPage() {
           )}
         </div>
         <div className="sv-actions">
+          {site && (
+            <motion.button
+              className="sv-edit"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate(`/sites/${id}/edit`)}
+            >
+              ✎ Edit Site
+            </motion.button>
+          )}
           {site && site.status === 'published' && site.slug && (
             <a
               className="sv-visit"
@@ -168,6 +178,18 @@ export default function SiteViewPage() {
           flex-shrink: 0;
         }
         .sv-actions { display: flex; gap: 8px; }
+        .sv-edit {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px; font-weight: 600;
+          color: #fff;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          padding: 10px 16px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .sv-edit:hover { background: rgba(255,255,255,0.14); }
         .sv-visit {
           font-family: 'Inter', sans-serif;
           font-size: 13px; font-weight: 600;
