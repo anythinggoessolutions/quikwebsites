@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import posthog from 'posthog-js'
+import { AuthProvider } from './lib/useAuth.jsx'
 import Navbar from './components/Navbar'
 import IntroAnimation from './components/IntroAnimation'
 import Footer from './components/Footer'
@@ -16,6 +17,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import ContactSupport from './pages/ContactSupport'
 import GeneratePage from './pages/GeneratePage'
+import AuthPage from './pages/AuthPage'
+import DashboardPage from './pages/DashboardPage'
 
 function LandingPage() {
   return (
@@ -50,13 +53,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/generate" element={<GeneratePage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/contact" element={<ContactSupport />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/generate" element={<GeneratePage />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/contact" element={<ContactSupport />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

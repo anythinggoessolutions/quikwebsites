@@ -57,6 +57,7 @@ export default function Navbar() {
             <motion.a
               className="nav-login"
               style={{ color: linkColor }}
+              onClick={() => navigate('/auth?mode=login')}
             >
               Log In
             </motion.a>
@@ -64,6 +65,7 @@ export default function Navbar() {
               className="nav-cta"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/auth?mode=signup')}
             >
               Start Free &rarr;
             </motion.button>
@@ -99,8 +101,8 @@ export default function Navbar() {
             >
               <a onClick={() => { setMenuOpen(false); navigate('/contact') }}>Contact Support</a>
               <div className="mobile-menu-divider" />
-              <a className="mobile-login" onClick={() => setMenuOpen(false)}>Log In</a>
-              <button className="mobile-cta" onClick={() => setMenuOpen(false)}>
+              <a className="mobile-login" onClick={() => { setMenuOpen(false); navigate('/auth?mode=login') }}>Log In</a>
+              <button className="mobile-cta" onClick={() => { setMenuOpen(false); navigate('/auth?mode=signup') }}>
                 Start Free &rarr;
               </button>
             </motion.div>
