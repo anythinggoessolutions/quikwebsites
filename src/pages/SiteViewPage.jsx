@@ -85,9 +85,9 @@ export default function SiteViewPage() {
               className="sv-cta"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/pricing?ready=1')}
             >
-              Go Live — Pick a Plan →
+              Go Live →
             </motion.button>
           )}
         </div>

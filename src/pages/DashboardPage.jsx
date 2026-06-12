@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../lib/useAuth.jsx'
 import { supabase } from '../lib/supabase'
@@ -15,6 +15,8 @@ const STATUS_LABELS = {
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const checkoutSuccess = searchParams.get('checkout') === 'success'
   const [credits, setCredits] = useState(null)
   const [sites, setSites] = useState(null) // null = loading, [] = none
   const [signingOut, setSigningOut] = useState(false)
@@ -83,6 +85,22 @@ export default function DashboardPage() {
       </nav>
 
       <div className="dash-content">
+        {checkoutSuccess && (
+          <div className="dash-banner-success">
+            🎉 Payment successful! Your plan is active — you're ready to go live.
+          </div>
+        )}
+
+        {credits && credits.plan === 'free' && (
+          <div className="dash-banner-upgrade">
+            <span>
+              You're on the free plan. Pick a plan to publish your site, make
+              edits, and connect a domain.
+            </span>
+            <button onClick={() => navigate('/pricing')}>Go Live →</button>
+          </div>
+        )}
+
         <div className="dash-header">
           <h1>Dashboard</h1>
           <motion.button
@@ -321,6 +339,42 @@ function DashStyles() {
         font-size: 20px; font-weight: 600;
         margin: 0 0 20px;
         letter-spacing: -0.3px;
+      }
+
+      /* Banners */
+      .dash-banner-success {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        color: #00C65A;
+        background: rgba(0,198,90,0.08);
+        border: 1px solid rgba(0,198,90,0.25);
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin-bottom: 24px;
+      }
+      .dash-banner-upgrade {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; flex-wrap: wrap;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        color: rgba(255,255,255,0.75);
+        background: rgba(91,80,232,0.1);
+        border: 1px solid rgba(91,80,232,0.3);
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin-bottom: 24px;
+      }
+      .dash-banner-upgrade button {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px; font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #5b50e8, #7c6af5);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(91,80,232,0.35);
+        flex-shrink: 0;
       }
 
       /* Sites grid */
