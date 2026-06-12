@@ -19,9 +19,12 @@ const CREDIT_AMOUNTS = {
   [process.env.STRIPE_PRICE_CREDITS_50]: 50,
 };
 
+// Monthly edit credits per plan — keep in sync with PricingPage.jsx
+const MONTHLY_CREDITS = { starter: 20, pro: 50 };
+
 const PLAN_CREDITS = {
-  [process.env.STRIPE_PRICE_STARTER]: 10,
-  [process.env.STRIPE_PRICE_PRO]: 25,
+  [process.env.STRIPE_PRICE_STARTER]: MONTHLY_CREDITS.starter,
+  [process.env.STRIPE_PRICE_PRO]: MONTHLY_CREDITS.pro,
 };
 
 export function createStripeRoutes(supabase) {
@@ -187,7 +190,7 @@ async function handleCheckoutCompleted(supabase, session) {
   if (session.mode === "subscription") {
     // Subscription — update plan in profiles
     const plan = priceKey === "pro" ? "pro" : "starter";
-    const monthlyCredits = plan === "pro" ? 25 : 10;
+    const monthlyCredits = MONTHLY_CREDITS[plan];
 
     await supabase
       .from("profiles")
@@ -208,7 +211,7 @@ async function handleSubscriptionUpdated(supabase, subscription) {
 
   const priceId = subscription.items?.data[0]?.price?.id;
   const plan = priceId === PRICES.pro ? "pro" : "starter";
-  const monthlyCredits = plan === "pro" ? 25 : 10;
+  const monthlyCredits = MONTHLY_CREDITS[plan];
 
   const updates = {
     plan,
@@ -304,7 +307,7 @@ async function handleInvoicePaid(supabase, invoice) {
     const customerId = invoice.customer;
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
     const priceId = subscription.items?.data[0]?.price?.id;
-    const monthlyCredits = priceId === PRICES.pro ? 25 : 10;
+    const monthlyCredits = priceId === PRICES.pro ? MONTHLY_CREDITS.pro : MONTHLY_CREDITS.starter;
 
     const { data: profile } = await supabase
       .from("profiles")

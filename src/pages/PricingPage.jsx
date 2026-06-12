@@ -13,13 +13,14 @@ const PLANS = [
     tagline: 'Everything you need to get online',
     features: [
       'Publish your website live',
-      '10 edits per month',
+      '20 edits per month',
+      'Connect your own domain',
       'Free stock photo gallery',
       'Upload your own photos',
       'Cinematic scroll video templates',
       'Contact form included',
       'Visitor analytics',
-      'yoursite.quikwebsites.com address',
+      'Free yoursite.quikwebsites.com address',
     ],
     cta: 'Go Live with Starter',
     highlight: false,
@@ -31,10 +32,8 @@ const PLANS = [
     tagline: 'For businesses that want it all',
     features: [
       'Everything in Starter',
-      '25 edits per month',
+      '50 edits per month',
       '2 custom cinematic videos per month',
-      'Connect your own domain',
-      'Buy a new domain in-app',
       'Detailed visitor analytics',
     ],
     cta: 'Go Live with Pro',
@@ -111,8 +110,9 @@ export default function PricingPage() {
             {justGenerated ? 'Your website is ready.' : 'Pick your plan. Go live today.'}
           </h1>
           <p className="pr-subtitle">
-            Pick a plan to publish it, make edits, swap in your own photos, and
-            connect your domain.
+            {justGenerated
+              ? 'Pick a plan to publish it, make edits, swap in your own photos, and connect your domain.'
+              : 'Publish your website, make edits, swap in your own photos, and connect your domain.'}
           </p>
         </motion.div>
 
