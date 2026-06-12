@@ -9,10 +9,12 @@ const PLANS = [
   {
     key: 'starter',
     name: 'Starter',
-    price: 19,
+    monthly: 19,
+    annual: 190,
     tagline: 'Everything you need to get online',
     features: [
       'Publish your website live',
+      'Hosting included',
       '20 edits per month',
       'Connect your own domain',
       'Free stock photo gallery',
@@ -27,7 +29,8 @@ const PLANS = [
   {
     key: 'pro',
     name: 'Pro',
-    price: 49,
+    monthly: 49,
+    annual: 490,
     tagline: 'For businesses that want it all',
     features: [
       'Everything in Starter',
@@ -52,9 +55,12 @@ export default function PricingPage() {
   const [searchParams] = useSearchParams()
   const [loadingKey, setLoadingKey] = useState(null)
   const [error, setError] = useState('')
+  const [billing, setBilling] = useState('monthly') // monthly | annual
 
   const justGenerated = searchParams.get('ready') === '1'
   const wasCancelled = searchParams.get('checkout') === 'cancelled'
+
+  const maxSavings = Math.max(...PLANS.map(p => p.monthly * 12 - p.annual))
 
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
@@ -123,6 +129,27 @@ export default function PricingPage() {
         )}
         {error && <div className="pr-error">{error}</div>}
 
+        {/* ── Billing toggle ── */}
+        <div className="pr-toggle-wrap">
+          <div className="pr-toggle">
+            <button
+              className={billing === 'monthly' ? 'pr-toggle-on' : ''}
+              onClick={() => setBilling('monthly')}
+            >
+              Monthly
+            </button>
+            <button
+              className={billing === 'annual' ? 'pr-toggle-on' : ''}
+              onClick={() => setBilling('annual')}
+            >
+              Annual
+            </button>
+          </div>
+          <span className="pr-toggle-badge">
+            2 months free — save up to ${maxSavings}
+          </span>
+        </div>
+
         {/* ── Plan cards ── */}
         <div className="pr-plans">
           {PLANS.map((plan, i) => (
@@ -137,9 +164,18 @@ export default function PricingPage() {
               <h2 className="pr-plan-name">{plan.name}</h2>
               <p className="pr-plan-tagline">{plan.tagline}</p>
               <div className="pr-price">
-                <span className="pr-price-amount">${plan.price}</span>
-                <span className="pr-price-period">/month</span>
+                <span className="pr-price-amount">
+                  ${billing === 'annual' ? plan.annual : plan.monthly}
+                </span>
+                <span className="pr-price-period">
+                  {billing === 'annual' ? '/year' : '/month'}
+                </span>
               </div>
+              {billing === 'annual' && (
+                <p className="pr-price-note">
+                  ${(plan.annual / 12).toFixed(0)}/mo equivalent — save ${plan.monthly * 12 - plan.annual}
+                </p>
+              )}
               <ul className="pr-features">
                 {plan.features.map((f) => (
                   <li key={f}>
@@ -155,9 +191,11 @@ export default function PricingPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={loadingKey !== null}
-                onClick={() => checkout(plan.key)}
+                onClick={() => checkout(billing === 'annual' ? `${plan.key}_annual` : plan.key)}
               >
-                {loadingKey === plan.key ? 'Opening checkout...' : plan.cta}
+                {loadingKey === plan.key || loadingKey === `${plan.key}_annual`
+                  ? 'Opening checkout...'
+                  : plan.cta}
               </motion.button>
             </motion.div>
           ))}
@@ -289,6 +327,50 @@ export default function PricingPage() {
           color: #ef4444;
           background: rgba(239,68,68,0.08);
           border: 1px solid rgba(239,68,68,0.15);
+        }
+
+        /* Billing toggle */
+        .pr-toggle-wrap {
+          display: flex; align-items: center; justify-content: center;
+          gap: 14px; flex-wrap: wrap;
+          margin-bottom: 32px;
+        }
+        .pr-toggle {
+          display: inline-flex;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 50px;
+          padding: 4px;
+        }
+        .pr-toggle button {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px; font-weight: 600;
+          color: rgba(255,255,255,0.5);
+          background: none; border: none;
+          border-radius: 50px;
+          padding: 8px 22px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .pr-toggle button.pr-toggle-on {
+          color: #fff;
+          background: linear-gradient(135deg, #5b50e8, #7c6af5);
+          box-shadow: 0 2px 12px rgba(91,80,232,0.4);
+        }
+        .pr-toggle-badge {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px; font-weight: 600;
+          color: #00C65A;
+          background: rgba(0,198,90,0.08);
+          border: 1px solid rgba(0,198,90,0.25);
+          border-radius: 50px;
+          padding: 6px 14px;
+        }
+        .pr-price-note {
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          color: #00C65A;
+          margin: -16px 0 24px;
         }
 
         /* Plan cards */

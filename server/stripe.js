@@ -8,10 +8,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PRICES = {
   starter: process.env.STRIPE_PRICE_STARTER,
   pro: process.env.STRIPE_PRICE_PRO,
+  starter_annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  pro_annual: process.env.STRIPE_PRICE_PRO_ANNUAL,
   credits_10: process.env.STRIPE_PRICE_CREDITS_10,
   credits_25: process.env.STRIPE_PRICE_CREDITS_25,
   credits_50: process.env.STRIPE_PRICE_CREDITS_50,
 };
+
+const SUBSCRIPTION_KEYS = ["starter", "pro", "starter_annual", "pro_annual"];
+
+// "starter_annual" → plan "starter", interval "annual"
+function planFromPriceKey(priceKey) {
+  return priceKey?.startsWith("pro") ? "pro" : "starter";
+}
+function intervalFromPriceKey(priceKey) {
+  return priceKey?.endsWith("_annual") ? "annual" : "monthly";
+}
+function planFromPriceId(priceId) {
+  return priceId === PRICES.pro || priceId === PRICES.pro_annual ? "pro" : "starter";
+}
 
 const CREDIT_AMOUNTS = {
   [process.env.STRIPE_PRICE_CREDITS_10]: 10,
@@ -20,7 +35,7 @@ const CREDIT_AMOUNTS = {
 };
 
 // Monthly edit credits per plan — keep in sync with PricingPage.jsx
-const MONTHLY_CREDITS = { starter: 20, pro: 50 };
+export const MONTHLY_CREDITS = { starter: 20, pro: 50 };
 
 const PLAN_CREDITS = {
   [process.env.STRIPE_PRICE_STARTER]: MONTHLY_CREDITS.starter,
@@ -47,7 +62,7 @@ export function createStripeRoutes(supabase) {
       return res.status(400).json({ error: "Missing userId" });
     }
 
-    const isSubscription = priceKey === "starter" || priceKey === "pro";
+    const isSubscription = SUBSCRIPTION_KEYS.includes(priceKey);
 
     try {
       // Find or create Stripe customer linked to this user
@@ -189,19 +204,22 @@ async function handleCheckoutCompleted(supabase, session) {
 
   if (session.mode === "subscription") {
     // Subscription — update plan in profiles
-    const plan = priceKey === "pro" ? "pro" : "starter";
+    const plan = planFromPriceKey(priceKey);
+    const interval = intervalFromPriceKey(priceKey);
     const monthlyCredits = MONTHLY_CREDITS[plan];
 
     await supabase
       .from("profiles")
       .update({
         plan,
+        plan_interval: interval,
         monthly_credits: monthlyCredits,
+        credits_reset_at: nextMonth(),
         stripe_subscription_id: session.subscription,
       })
       .eq("id", userId);
 
-    console.log(`User ${userId} subscribed to ${plan}`);
+    console.log(`User ${userId} subscribed to ${plan} (${interval})`);
   }
 }
 
@@ -210,11 +228,16 @@ async function handleSubscriptionUpdated(supabase, subscription) {
   if (!userId) return;
 
   const priceId = subscription.items?.data[0]?.price?.id;
-  const plan = priceId === PRICES.pro ? "pro" : "starter";
+  const plan = planFromPriceId(priceId);
+  const interval =
+    priceId === PRICES.starter_annual || priceId === PRICES.pro_annual
+      ? "annual"
+      : "monthly";
   const monthlyCredits = MONTHLY_CREDITS[plan];
 
   const updates = {
     plan,
+    plan_interval: interval,
     monthly_credits: monthlyCredits,
     stripe_subscription_id: subscription.id,
   };
@@ -307,7 +330,7 @@ async function handleInvoicePaid(supabase, invoice) {
     const customerId = invoice.customer;
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
     const priceId = subscription.items?.data[0]?.price?.id;
-    const monthlyCredits = priceId === PRICES.pro ? MONTHLY_CREDITS.pro : MONTHLY_CREDITS.starter;
+    const monthlyCredits = MONTHLY_CREDITS[planFromPriceId(priceId)];
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -320,6 +343,7 @@ async function handleInvoicePaid(supabase, invoice) {
         .from("profiles")
         .update({
           monthly_credits: monthlyCredits,
+          credits_reset_at: nextMonth(),
           plan_status: "active",
           past_due_since: null,
         })
@@ -334,11 +358,15 @@ async function handleInvoicePaid(supabase, invoice) {
 
       if (emailProfile?.email) {
         const amount = `$${(invoice.amount_paid / 100).toFixed(2)}`;
-        const plan = priceId === PRICES.pro ? "Pro" : "Starter";
+        const plan = planFromPriceId(priceId) === "pro" ? "Pro" : "Starter";
+        const cycle =
+          priceId === PRICES.starter_annual || priceId === PRICES.pro_annual
+            ? "annual"
+            : "monthly";
         sendPaymentReceiptEmail(
           emailProfile.email,
           amount,
-          `${plan} plan — monthly subscription`,
+          `${plan} plan — ${cycle} subscription`,
           new Date(invoice.created * 1000).toLocaleDateString()
         ).catch((err) => console.error("Failed to send receipt:", err));
       }
@@ -349,6 +377,13 @@ async function handleInvoicePaid(supabase, invoice) {
 }
 
 // ─── Helpers ───
+
+/** One month from now — when monthly credits next reset. */
+function nextMonth() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString();
+}
 
 async function getOrCreateCustomer(supabase, stripe, userId) {
   const { data: profile } = await supabase

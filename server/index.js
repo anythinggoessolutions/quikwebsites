@@ -11,6 +11,7 @@ import { createImageGalleryRoutes } from "./images-gallery.js";
 import { createDomainRoutes } from "./domains.js";
 import { createVideoRoutes } from "./video.js";
 import { startGracePeriodChecker } from "./dunning.js";
+import { startCreditResetChecker } from "./credits-reset.js";
 import { createEditorRoutes } from "./editor.js";
 import { createAnalyticsRoutes } from "./analytics.js";
 import { sendSiteLiveEmail } from "./email.js";
@@ -491,6 +492,11 @@ app.listen(PORT, () => {
 
   // Start grace period checker for past-due accounts
   startGracePeriodChecker(supabase);
+
+  // Start monthly credit resets for annual subscribers
+  if (process.env.STRIPE_SECRET_KEY) {
+    startCreditResetChecker(supabase);
+  }
 
   // Start template recycler for unconverted free-tier sites
   startTemplateRecycler(supabase);
